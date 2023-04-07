@@ -89,10 +89,11 @@ target_link_libraries(
           dylib
           zNetInterface
           pugixml
-          Client.Voice)
+          Client.Voice
+          discord)
 target_include_directories(
   GMP PRIVATE ${InjectMage_INCLUDE_DIR} ${BugTrap_INCLUDE_DIR}
-              ${CPP_HTTPLIB_INCLUDE_DIRS})
+              ${CPP_HTTPLIB_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Automatically copies GMP client DLL to the directories specified in
 # GMP_DLL_OUTPUT_DIR environment variable after the build. The variable can

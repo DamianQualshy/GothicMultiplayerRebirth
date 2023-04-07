@@ -24,6 +24,7 @@
 *.app
 Release
 Debug
+Build
 
 .vscode
 .vs/*

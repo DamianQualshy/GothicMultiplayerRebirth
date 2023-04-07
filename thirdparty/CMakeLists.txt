@@ -24,3 +24,4 @@
 add_subdirectory(cpp-httplib)
 add_subdirectory(RakNet)
 add_subdirectory(chillout)
+add_subdirectory(discord-game-sdk)

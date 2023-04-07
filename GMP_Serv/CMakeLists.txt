@@ -45,10 +45,11 @@ target_link_libraries(
           sol2
           cmake_git_version_tracking
           nlohmann_json::nlohmann_json
+          discord
   PUBLIC common zNetServerInterface)
 target_include_directories(
   ServerLib
-  PRIVATE ${CPP_HTTPLIB_INCLUDE_DIRS} ${LUA_INCLUDE_DIR} sol2
+  PRIVATE ${CPP_HTTPLIB_INCLUDE_DIRS} ${LUA_INCLUDE_DIR} sol2 ${CMAKE_CURRENT_SOURCE_DIR}
   PUBLIC .)
 
 add_executable(gmp_server main.cpp)

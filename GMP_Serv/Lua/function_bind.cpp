@@ -24,6 +24,7 @@ SOFTWARE.
 #include "function_bind.h"
 
 #include <spdlog/spdlog.h>
+#include <discord.h>
 
 #include <fstream>
 using namespace std;
