@@ -28,7 +28,7 @@ SOFTWARE.
 #include "patch.h"
 #include "InjectMage.h"
 #include "GMPSplash.h"
-#include "g2Api.h"
+#include <ZenGin/zGothicAPI.h>
 
 
 void Patch::NoStartupLogo()

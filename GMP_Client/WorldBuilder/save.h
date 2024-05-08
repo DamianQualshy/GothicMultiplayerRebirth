@@ -26,7 +26,7 @@ SOFTWARE.
 #pragma once
 #include <vector>
 #include "../common.h"
-#include "g2Api.h"
+#include <ZenGin/zGothicAPI.h>
 #include <string>
 using namespace std;
 enum VobType

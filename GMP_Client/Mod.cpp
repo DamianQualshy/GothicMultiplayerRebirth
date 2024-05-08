@@ -24,7 +24,7 @@ SOFTWARE.
 */
 
 #include "Mod.h"
-#include "g2Api.h"
+#include <ZenGin/zGothicAPI.h>
 #include "CGmpClient.h"
 #include "patch.h"
 #include "ExceptionHandler.h"

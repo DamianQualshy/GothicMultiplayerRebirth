@@ -35,7 +35,7 @@ SOFTWARE.
 
 #pragma once
 #include <vector>
-#include "g2Api.h"
+#include <ZenGin/zGothicAPI.h>
 #include "CConfig.h"
 
 struct MsgStruct

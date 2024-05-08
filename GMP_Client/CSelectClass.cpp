@@ -23,7 +23,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include "g2Api.h"
+#include <ZenGin/zGothicAPI.h>
 #include "CSelectClass.h"
 #include <list>
 #include "patch.h"

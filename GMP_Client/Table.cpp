@@ -36,7 +36,7 @@ SOFTWARE.
 //Coded for Gothic Multiplayer
 
 #include "Table.h"
-#include "g2api.h"
+#include <ZenGin/zGothicAPI.h>
 #include <stdio.h>
 using namespace G2W;
 

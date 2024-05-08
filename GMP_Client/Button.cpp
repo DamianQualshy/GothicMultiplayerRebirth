@@ -36,7 +36,7 @@ SOFTWARE.
 //Coded for Gothic Multiplayer
 
 #include "Button.h"
-#include "g2api.h"
+#include <ZenGin/zGothicAPI.h>
 using namespace G2W;
 
 Button::Button(int x, int y, int width, int height){

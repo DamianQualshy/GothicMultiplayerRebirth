@@ -37,7 +37,7 @@ SOFTWARE.
 
 #pragma once
 #include "Font.h"
-#include "g2api.h"
+#include <ZenGin/zGothicAPI.h>
 namespace G2W {
 	
 class Button

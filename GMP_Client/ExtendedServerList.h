@@ -24,7 +24,7 @@ SOFTWARE.
 */
 
 #pragma once
-#include "g2Api.h"
+#include <ZenGin/zGothicAPI.h>
 #include "CServerList.h"
 #include "CLanguage.h"
 #include "G2W.h"

@@ -25,7 +25,7 @@ SOFTWARE.
 
 #pragma once
 #include <vector>
-#include "g2Api.h"
+#include <ZenGin/zGothicAPI.h>
 
 using namespace std;
 

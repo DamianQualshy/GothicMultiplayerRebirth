@@ -27,6 +27,9 @@ FetchContent_Declare(
   GIT_TAG 904dbda1336ba4b9a1415a68d5f203f576b696bb)
 FetchContent_MakeAvailable(cmake_git_version_tracking)
 
+add_subdirectory(union)
+
+# GMP_Client
 set(CLIENT_SOURCES
     Button.cpp
     CActiveAniID.cpp
@@ -75,7 +78,7 @@ add_library(GMP SHARED ${CLIENT_SOURCES})
 target_link_libraries(
   GMP
   PRIVATE common
-          g2api
+          union
           ${InjectMage}
           ${BugTrap}
           SharedLib
@@ -112,7 +115,11 @@ if(GOTHIC_2_SYSTEM_DIRECTORY_LIST)
   endforeach()
 endif()
 
-add_subdirectory(g2api)
 add_subdirectory(znet)
 add_subdirectory(znet_rak)
 add_subdirectory(Voice)
+
+target_compile_definitions(GMP
+	PRIVATE
+		__G2A
+)

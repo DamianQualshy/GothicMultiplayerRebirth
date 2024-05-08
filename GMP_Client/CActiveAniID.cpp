@@ -24,7 +24,7 @@ SOFTWARE.
 */
 
 #include "CActiveAniID.h"
-#include "g2Api.h"
+#include <ZenGin/zGothicAPI.h>
 
 CActiveAniID *pActiveAniID=NULL;
 

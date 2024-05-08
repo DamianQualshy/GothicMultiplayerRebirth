@@ -1,0 +1,6 @@
+[submodule "GMP_Client/union/gothic-api"]
+	path = GMP_Client/union/gothic-api
+	url = https://gitlab.com/union-framework/gothic-api
+[submodule "GMP_Client/union/union-api"]
+	path = GMP_Client/union/union-api
+	url = https://gitlab.com/union-framework/union-api

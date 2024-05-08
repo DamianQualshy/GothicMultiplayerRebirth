@@ -35,7 +35,7 @@ SOFTWARE.
 
 #pragma once
 
-#include "g2Api.h"
+#include <ZenGin/zGothicAPI.h>
 
 typedef unsigned long long int uint64_t;
 class CInterpolatePos;

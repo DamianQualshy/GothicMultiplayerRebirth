@@ -27,7 +27,7 @@ SOFTWARE.
 #include "CConfig.h"
 #include "CIngame.h"
 #include "patch.h"
-#include "g2Api.h"
+#include <ZenGin/zGothicAPI.h>
 #include "Interface.h"
 #include "CSelectClass.h"
 #include "CChat.h"

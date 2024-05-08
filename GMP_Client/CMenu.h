@@ -35,7 +35,7 @@ SOFTWARE.
 
 //** Includes
 #pragma once
-#include "g2Api.h"
+#include <ZenGin/zGothicAPI.h>
 #include "patch.h"
 #include <vector>
 #include <ctime>

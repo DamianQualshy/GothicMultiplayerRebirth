@@ -25,7 +25,7 @@ SOFTWARE.
 
 #pragma once
 
-#include "g2Api.h"
+#include <ZenGin/zGothicAPI.h>
 #include "CSelectClass.h"
 #include "CServerList.h"
 #include <vector>

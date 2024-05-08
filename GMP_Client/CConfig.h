@@ -26,8 +26,7 @@ SOFTWARE.
 #pragma once
 #include <fstream>
 #include "singleton.h"
-#include "g2Api.h"
-#include "ztypes.hpp"
+#include <ZenGin/zGothicAPI.h>
 
 // KEYBOARD LAYOUTS
 #define LAYOUT_GERMAN 0x00000407
