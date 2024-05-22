@@ -43,11 +43,13 @@ target_link_libraries(
           dylib
           ${LUA_LIBRARIES}
           sol2
+          chillout
           cmake_git_version_tracking
           nlohmann_json::nlohmann_json
+          gsl::gsl-lite
   PUBLIC common zNetServerInterface)
 target_include_directories(
-  ServerLib
+          ServerLib
   PRIVATE ${CPP_HTTPLIB_INCLUDE_DIRS} ${LUA_INCLUDE_DIR} sol2
   PUBLIC .)
 

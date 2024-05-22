@@ -38,7 +38,7 @@ void SetupCrashHandler() {
   static std::stringstream ss;
 
   auto &chillout = Debug::Chillout::getInstance();
-  chillout.init(L"gmp_server", L".");
+  chillout.init(L"GMP_Serv", L".");
 
   chillout.setCrashCallback([&chillout]() {
     SPDLOG_CRITICAL("Crash detected! Backtrace:");
@@ -62,8 +62,9 @@ int main(int argc, char **argv) {
   while (1) {
     using namespace std::chrono_literals;
     serv.Run();
-    serv.DoRespawns();
+    //serv.DoRespawns();
     serv.SendSpamMessage();
+    //serv.RegenerationHPMP();
     std::this_thread::sleep_for(1ms);
   }
   return 0;
