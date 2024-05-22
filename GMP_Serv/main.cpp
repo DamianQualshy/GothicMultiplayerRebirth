@@ -62,9 +62,9 @@ int main(int argc, char **argv) {
   while (1) {
     using namespace std::chrono_literals;
     serv.Run();
-    serv.DoRespawns();
+    //serv.DoRespawns();
     serv.SendSpamMessage();
-    serv.RegenerationHPMP();
+    //serv.RegenerationHPMP();
     std::this_thread::sleep_for(1ms);
   }
   return 0;
