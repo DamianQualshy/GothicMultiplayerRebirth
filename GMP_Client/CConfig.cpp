@@ -26,6 +26,8 @@ SOFTWARE.
 #pragma warning (disable : 4996 4800)
 #include "CConfig.h"
 
+using namespace Gothic_II_Addon;
+
 zSTRING Multiplayer = "MULTIPLAYER";
 zSTRING Engine = "ENGINE";
 zSTRING Game = "GAME";
@@ -33,8 +35,9 @@ DWORD KEYBOARDLAYOUT;
 
 CConfig::CConfig()
 {
-	Opt = zCOption::GetOption();
-	MultiSection = zCOption::GetOption()->GetSectionByName(Multiplayer, 1);
+	zCOption* Opt;
+    CGameManager* gameMan;
+	MultiSection = Opt->GetSectionByName(Multiplayer, 1);
 	LoadConfigFromFile();
 };
 
@@ -46,28 +49,28 @@ CConfig::~CConfig()
 void CConfig::LoadConfigFromFile()
 {
 	// Sprawdzanie czy iloœæ wejœæ w sekcji [MULTIPLAYER] siê zgadza, jeœli nie ustawienie configu na default.
-	if(Opt->ReadString(Multiplayer, "Nickname").IsEmpty() || Opt->GetNumEntries(MultiSection) != 12){
+      if (Opt->ReadString(Multiplayer, "Nickname", "").IsEmpty() || Opt->GetNumEntries(MultiSection) != 12) {
 		if(Opt->SectionExists(Multiplayer)) Opt->RemoveSection(Multiplayer);
 		d=TRUE;
 		DefaultSettings();
 	}
 	else{
-		Nickname = Opt->ReadString(Multiplayer, "Nickname");
-		skintexture = Opt->ReadInt(Multiplayer, "Skintexture");
-		facetexture = Opt->ReadInt(Multiplayer, "Facetexture");
-		headmodel = Opt->ReadInt(Multiplayer, "Headmodel");
-		walkstyle = Opt->ReadInt(Multiplayer, "Walkstyle");
-		lang = Opt->ReadInt(Multiplayer, "Lang");
-		logchat = Opt->ReadBool(Multiplayer, "Logchat");
-		watch = Opt->ReadBool(Multiplayer, "Watch");
-		WatchPosX = Opt->ReadInt(Multiplayer, "WatchPosX");
-		WatchPosY = Opt->ReadInt(Multiplayer, "WatchPosY");
-		ChatLines = Opt->ReadInt(Multiplayer, "ChatLines");
-		keyboardlayout = Opt->ReadInt(Multiplayer, "KeyboardLayout");
-		antialiasing = Opt->ReadBool(Engine, "zVidEnableAntiAliasing");
-		joystick = Opt->ReadBool(Game, "enableJoystick");
-		potionkeys = Opt->ReadBool(Game, "usePotionKeys");
-		logovideos = Opt->ReadBool(Game, "playLogoVideos");
+       Nickname = Opt->ReadString(Multiplayer, "Nickname", "");
+       skintexture = Opt->ReadInt(Multiplayer, "Skintexture", 0);
+       facetexture = Opt->ReadInt(Multiplayer, "Facetexture", 0);
+       headmodel = Opt->ReadInt(Multiplayer, "Headmodel", 0);
+       walkstyle = Opt->ReadInt(Multiplayer, "Walkstyle", 0);
+       lang = Opt->ReadInt(Multiplayer, "Lang", 0);
+       logchat = Opt->ReadBool(Multiplayer, "Logchat", 0);
+       watch = Opt->ReadBool(Multiplayer, "Watch", 0);
+       WatchPosX = Opt->ReadInt(Multiplayer, "WatchPosX", 0);
+       WatchPosY = Opt->ReadInt(Multiplayer, "WatchPosY", 0);
+       ChatLines = Opt->ReadInt(Multiplayer, "ChatLines", 0);
+       keyboardlayout = Opt->ReadInt(Multiplayer, "KeyboardLayout", 0);
+       antialiasing = Opt->ReadBool(Engine, "zVidEnableAntiAliasing", 0);
+       joystick = Opt->ReadBool(Game, "enableJoystick", 0);
+       potionkeys = Opt->ReadBool(Game, "usePotionKeys", 0);
+       logovideos = Opt->ReadBool(Game, "playLogoVideos", 0);
 		d=FALSE;
 	}
 };
@@ -97,25 +100,25 @@ void CConfig::DefaultSettings()
 void CConfig::SaveConfigToFile()
 {
 	// [MULTIPLAYER] Ini Section
-	Opt->WriteString(Multiplayer, "Nickname", Nickname);
-	Opt->WriteInt(Multiplayer, "Skintexture", skintexture);
-	Opt->WriteInt(Multiplayer, "Facetexture", facetexture);
-	Opt->WriteInt(Multiplayer, "Headmodel", headmodel);
-	Opt->WriteInt(Multiplayer, "Walkstyle", walkstyle);
-	Opt->WriteInt(Multiplayer, "Lang", lang);
-	Opt->WriteBool(Multiplayer, "Logchat", logchat);
-	Opt->WriteBool(Multiplayer, "Watch", watch);
-	Opt->WriteInt(Multiplayer, "WatchPosX", WatchPosX);
-	Opt->WriteInt(Multiplayer, "WatchPosY", WatchPosY);
-	Opt->WriteInt(Multiplayer, "ChatLines", ChatLines);
-	Opt->WriteInt(Multiplayer, "KeyboardLayout", keyboardlayout);
+	Opt->WriteString(Multiplayer, "Nickname", Nickname, 0);
+    Opt->WriteInt(Multiplayer, "Skintexture", skintexture, 0);
+    Opt->WriteInt(Multiplayer, "Facetexture", facetexture, 0);
+    Opt->WriteInt(Multiplayer, "Headmodel", headmodel, 0);
+    Opt->WriteInt(Multiplayer, "Walkstyle", walkstyle, 0);
+    Opt->WriteInt(Multiplayer, "Lang", lang, 0);
+    Opt->WriteBool(Multiplayer, "Logchat", logchat, 0);
+    Opt->WriteBool(Multiplayer, "Watch", watch, 0);
+    Opt->WriteInt(Multiplayer, "WatchPosX", WatchPosX, 0);
+    Opt->WriteInt(Multiplayer, "WatchPosY", WatchPosY, 0);
+    Opt->WriteInt(Multiplayer, "ChatLines", ChatLines, 0);
+    Opt->WriteInt(Multiplayer, "KeyboardLayout", keyboardlayout, 0);
 	// Other Sections
-	Opt->WriteBool(Engine, "zVidEnableAntiAliasing", antialiasing);
-	Opt->WriteBool(Game, "enableJoystick", joystick);
-	Opt->WriteBool(Game, "usePotionKeys", potionkeys);
-	Opt->WriteBool(Game, "playLogoVideos", logovideos);
+    Opt->WriteBool(Engine, "zVidEnableAntiAliasing", antialiasing, 0);
+    Opt->WriteBool(Game, "enableJoystick", joystick, 0);
+    Opt->WriteBool(Game, "usePotionKeys", potionkeys, 0);
+    Opt->WriteBool(Game, "playLogoVideos", logovideos, 0);
 	// Apply changes
-	CGameManager::GetGameManager()->ApplySomeSettings();
+	gameMan->ApplySomeSettings();
 }
 
 BOOL CConfig::IsDefault(){ return (BOOL)d; }

@@ -49,7 +49,9 @@ SOFTWARE.
 #include "ExtendedServerList.h"
 #include <spdlog/spdlog.h>
 
-extern GameClient*client;
+extern GameClient* client;
+using namespace Gothic_II_Addon;
+
 extern zSTRING GlobalFont;
 extern CConfig* user_config;
 extern std::vector<zSTRING> vec_choose_lang;
@@ -66,8 +68,16 @@ zSTRING FDefault = "FONT_DEFAULT.TGA";
 zSTRING WalkAnim = "S_WALKL";
 CLanguage* Lang;
 zCView* Screen;
-zCView* PrintTimedScreen;
+zCView* PrintTimedScreen = *(zCView**)((DWORD)Screen + 0x34);
 zCInput* Input;
+zCOption* Option;
+oCGame* Game;
+zCSoundSystem* SoundSystem;
+oCObjectFactory* ObjectFactory;
+zCCamera* Camera;
+CGameManager* GameManager;
+oCNpc* Hero = oCNpc::player;
+oCNpcInventory* HeroInventory = &Hero->inventory2;
 CBuilder* Builder;
 CUpdate* Update;
 ifstream g2names;
@@ -86,14 +96,11 @@ char x[2]={0, 0};
 
 	CMainMenu::CMainMenu()
 	{
-		PrintTimedScreen = zCView::GetScreen()->GetPrintScreen();
-		oCNpc::GetHero()->SetMovLock(1);
+		oCNpc::player->SetMovLock(1);
 		Patch::PlayerInterfaceEnabled(false);
-		Screen = zCView::GetScreen();
-		Input = zCInput::GetInput();
 		LoadConfig();
-		ScreenResolution.x = zCOption::GetOption()->ReadInt(zOPT_SEC_VIDEO, "zVidResFullscreenX", 320);
-		ScreenResolution.y = zCOption::GetOption()->ReadInt(zOPT_SEC_VIDEO, "zVidResFullscreenY", 258); 
+		ScreenResolution.x = Option->ReadInt(zOPT_SEC_VIDEO, "zVidResFullscreenX", 320);
+		ScreenResolution.y = Option->ReadInt(zOPT_SEC_VIDEO, "zVidResFullscreenY", 258); 
 		MenuItems = 4;
 		hbX, hbY, ps = 0, MenuPos = 0, OptionPos = 0, WBMenuPos = 0;
 		RECT wymiary;
@@ -118,21 +125,21 @@ char x[2]={0, 0};
 		oCSpawnManager::SetRemoveRange(2097152.0f);
 		ServerList=new CServerList();
 		LaunchMenuScene();
-		oCGame::GetGame()->GetWorldTimer()->GetTime(Hour, Minute);
+		Game->GetWorldTimer()->GetTime(Hour, Minute);
 		HooksManager * hm = HooksManager::GetInstance();
 		hm->AddHook(HT_RENDER, (DWORD)MainMenuLoop, false);
 		hm->AddHook(HT_RENDER, (DWORD)CSelectClass::Loop, false);
 		hm->RemoveHook(HT_AIMOVING, (DWORD)Initialize);
 		ClassSelect=NULL;
-		HeroPos = oCNpc::GetHero()->GetPosition();
-		Angle = oCNpc::GetHero()->GetAngle();
-		NAngle = oCNpc::GetHero()->GetAngleN();
-		ClearNpcTalents(oCNpc::GetHero());
+        HeroPos = oCNpc::player->GetPositionWorld();
+		Angle = oCNpc::player->GetAngle(player);
+		//NAngle = oCNpc::player->GetAngleN();
+		ClearNpcTalents(oCNpc::player);
 		zCSoundFX* FXMusic;
-		if(Christmas) FXMusic = zCSoundSystem::GetSoundSystem()->LoadSoundFX("XMAS.WAV");
-		else FXMusic = zCSoundSystem::GetSoundSystem()->LoadSoundFX("K_KURKOWSKI_A_CERTAIN_PLACE.WAV");
+		if(Christmas) FXMusic = SoundSystem->LoadSoundFX("XMAS.WAV");
+		else FXMusic = SoundSystem->LoadSoundFX("K_KURKOWSKI_A_CERTAIN_PLACE.WAV");
 		FXMusic->SetLooping(1);
-		MusicId = zCSoundSystem::GetSoundSystem()->PlaySound(FXMusic, 1);
+		MusicId = SoundSystem->PlaySound(FXMusic, 1);
 	};
 
 	CMainMenu::~CMainMenu()
@@ -144,7 +151,6 @@ char x[2]={0, 0};
 	static void ReLaunchPart2()
 	{
 		HooksManager::GetInstance()->RemoveHook(HT_AIMOVING, (DWORD)ReLaunchPart2);
-		oCNpc* Hero = oCNpc::GetHero();
 		CMainMenu* ReMenu = CMainMenu::GetInstance();
 		ReMenu->ClearNpcTalents(Hero);
 		ReMenu->ps = MAIN_MENU;
@@ -163,7 +169,7 @@ char x[2]={0, 0};
 		}
 		Hero->GetModel()->StartAnimation("S_RUN");
 		Hero->SetWeaponMode(NPC_WEAPON_NONE);
-		Hero->GetInventory()->ClearInventory();
+		HeroInventory->ClearInventory();
 		ReMenu->DisableHealthBar();
 		ReMenu->GMPLogo = new zCView(0,0,8192,8192,VIEW_ITEM);
 		ReMenu->GMPLogo->SetPos(4000,200);
@@ -180,31 +186,30 @@ char x[2]={0, 0};
 
 	void CMainMenu::ReLaunchMainMenu()
 	{
-		zCInput::GetInput()->ClearKeyBuffer();
-		oCGame* Game = oCGame::GetGame();
-		if(!memcmp("NEWWORLD\\NEWWORLD.ZEN", Game->GetWorld()->GetWorldName().ToChar(), 21)){} // jest mapa
+		Input->ClearKeyBuffer();
+		if(!memcmp("NEWWORLD\\NEWWORLD.ZEN", Game->GetGameWorld()->GetWorldName().ToChar(), 21)){} // jest mapa
 		else {
 			Patch::ChangeLevelEnabled(true);
-			oCGame::GetGame()->ChangeLevel("NEWWORLD\\NEWWORLD.ZEN", zSTRING("????"));
+			Game->ChangeLevel("NEWWORLD\\NEWWORLD.ZEN", zSTRING("????"));
 			Patch::ChangeLevelEnabled(false);
 		}
 		HooksManager::GetInstance()->AddHook(HT_AIMOVING, (DWORD)ReLaunchPart2, false);
-	};
-
+    };
+       
+	oCViewStatusBar* hpBar;
 	void CMainMenu::EnableHealthBar()
 	{
-		oCGame::GetGame()->GetHealthBar()->SetSize(hbX,hbY);
+		Game->hpBar->SetSize(hbX,hbY);
 	};
 	void CMainMenu::DisableHealthBar()
 	{
-		oCGame::GetGame()->GetHealthBar()->GetSize(hbX,hbY);
-		oCGame::GetGame()->GetHealthBar()->SetSize(0,0);
+		Game->hpBar->GetSize(hbX,hbY);
+		Game->hpBar->SetSize(0,0);
 	};
 
 	void CMainMenu::PrintNews()
 	{
 		if(RssNews.size() > 0){
-			zCView* Screen = zCView::GetScreen();
 			Screen->SetFont(FDefault);
 			Screen->SetFontColor(Green);
 			Screen->Print(200,0, News);
@@ -312,13 +317,13 @@ char x[2]={0, 0};
 
 	void CMainMenu::LaunchMenuScene()
 	{
-		CamWeapon = oCObjectFactory::GetFactory()->CreateItem(zCParser::GetParser()->GetIndex(string_tmp));
-		CamWeapon->ClearItemName();
+		CamWeapon = ObjectFactory->CreateItem(zCParser::GetParser()->GetIndex(string_tmp));
+		CamWeapon->name.Clear();
 		CamWeapon->SetPositionWorld(zVEC3((float)13354.502930, 2040.0, (float)-1141.678467));
 		CamWeapon->RotateWorldY(-150);
-		oCGame::GetGame()->CamInit(CamWeapon, zCCamera::GetCamera());
+		Game->CamInit(CamWeapon, Camera);
 		string_tmp = "ItMw_1H_Blessed_03";
-		TitleWeapon = oCObjectFactory::GetFactory()->CreateItem(zCParser::GetParser()->GetIndex(string_tmp));
+		TitleWeapon = ObjectFactory->CreateItem(zCParser::GetParser()->GetIndex(string_tmp));
 		TitleWeapon->SetPositionWorld(zVEC3((float)13346.502930, 2006.0, (float)-1240.678467));
 
 	};
@@ -332,17 +337,17 @@ char x[2]={0, 0};
 				headmodel_tmp = CPlayer::GetHeadModelNameFromByte(user_config->headmodel);
 				Walkstyle_tmp = CPlayer::GetWalkStyleFromByte(user_config->walkstyle);
 				string_tmp = "HUM_BODY_NAKED0";
-				oCNpc::GetHero()->SetAdditionalVisuals(string_tmp, user_config->skintexture, 0, headmodel_tmp, user_config->facetexture, 0, -1);
-				oCNpc::GetHero()->ApplyOverlay(Walkstyle_tmp);
+				oCNpc::player->SetAdditionalVisuals(string_tmp, user_config->skintexture, 0, headmodel_tmp, user_config->facetexture, 0, -1);
+				oCNpc::player->ApplyOverlay(Walkstyle_tmp);
 			}
 		}
 	};
 
 	void CMainMenu::CleanUpMainMenu()
 	{
-		zCSoundSystem::GetSoundSystem()->StopAllSounds();
+		SoundSystem->StopAllSounds();
 		MState = MENU_CLEAN;
-		oCGame::GetGame()->CamInitOrginal();
+		Game->CamInit();
 		TitleWeapon->RemoveVobFromWorld();
 		CamWeapon->RemoveVobFromWorld();
 		TitleWeapon = NULL;
@@ -350,13 +355,13 @@ char x[2]={0, 0};
 		TitleWeaponEnabled = false;
 		MenuPos = 0;
 		OptionPos = 0;
-		oCNpc::GetHero()->SetMovLock(0);
+		oCNpc::player->SetMovLock(0);
 		EnableHealthBar();
 		Screen->RemoveItem(GMPLogo);
 		delete GMPLogo;
 		if(AppWeapon) AppWeapon->RemoveVobFromWorld();
-		oCGame::GetGame()->GetWorldTimer()->SetDay(1);
-		oCGame::GetGame()->GetWorldTimer()->SetTime(12, 00);
+		Game->GetWorldTimer()->SetDay(1);
+		Game->GetWorldTimer()->SetTime(12, 00);
 		Screen->SetFont(FDefault);
 	};
 	
@@ -471,14 +476,14 @@ char x[2]={0, 0};
 
 	void CMainMenu::SpeedUpTime()
 	{
-		oCGame::GetGame()->GetWorldTimer()->GetTime(Hour, Minute);
+		Game->GetWorldTimer()->GetTime(Hour, Minute);
 		if(Minute >= 59) Hour++;
 		Minute++;
-		oCGame::GetGame()->GetWorldTimer()->SetTime(Hour, Minute);
+		Game->GetWorldTimer()->SetTime(Hour, Minute);
 	};
 	void CMainMenu::ClearNpcTalents(oCNpc* Npc)
 	{
-		Npc->GetInventory()->ClearInventory();
+		HeroInventory->ClearInventory();
 		Npc->DestroySpellBook();
 		Npc->MakeSpellBook();
 		for(int i=0; i<21; i++) {
@@ -498,10 +503,10 @@ char x[2]={0, 0};
 	{
 		Input->ClearKeyBuffer();
 		CMainMenu::GetInstance()->Options->Leave();
-		CGameManager::GetGameManager()->ApplySomeSettings();
-		oCNpc::GetHero()->SetMovLock(1);
+		GameManager->ApplySomeSettings();
+		oCNpc::player->SetMovLock(1);
 		CMainMenu::GetInstance()->MState = MENU_LOOP;
-		ScreenResolution.x = zCOption::GetOption()->ReadInt(zOPT_SEC_VIDEO, "zVidResFullscreenX", 320);
+		ScreenResolution.x = Option->ReadInt(zOPT_SEC_VIDEO, "zVidResFullscreenX", 320);
 	};
 
 	void CMainMenu::RunMenuItem()
@@ -517,7 +522,7 @@ char x[2]={0, 0};
 			esl->RefreshList();
 			if(!ServerIP.IsEmpty()) ServerIP.Clear();
 			EraseSpacesInNickname();
-			oCNpc::GetHero()->SetName(user_config->Nickname);
+			oCNpc::player->name[0] = user_config->Nickname;
 		break;
 		case 1:
 			// WYBIERZ WYGL�D
@@ -525,9 +530,11 @@ char x[2]={0, 0};
 				ChoosingApperance = ApperancePart::FACE;
 				LastApperance = ApperancePart::FACE;
 				AppWeapon->ResetRotationsWorld();
-				AppWeapon->SetPositionWorld(zVEC3(oCNpc::GetHero()->GetPosition().x-78, oCNpc::GetHero()->GetPosition().y+50, oCNpc::GetHero()->GetPosition().z-119));
+                                AppWeapon->SetPositionWorld(zVEC3(oCNpc::player->GetPositionWorld()[0] - 78,
+                                                                  oCNpc::player->GetPositionWorld()[1] + 50,
+                                                                  oCNpc::player->GetPositionWorld()[2] - 119));
 				AppWeapon->RotateWorldY(30);
-				oCGame::GetGame()->CamInit(CMainMenu::GetInstance()->AppWeapon, zCCamera::GetCamera());
+				Game->CamInit(CMainMenu::GetInstance()->AppWeapon, Camera);
 			}
 			MState=MENU_APPEARANCE;
 		break;
@@ -544,7 +551,7 @@ char x[2]={0, 0};
 		break;
 		case 4:
 			// WYJD� Z GRY
-			CGameManager::GetGameManager()->Done();
+			GameManager->Done();
 		break;
 		};
 	};
@@ -630,10 +637,10 @@ char x[2]={0, 0};
 
 	void CMainMenu::RenderMenu()
 	{
-		if(Christmas)oCGame::GetGame()->GetWorld()->StartSnow();
-		if(oCNpc::GetHero()->GetPosition().x != HeroPos.x){
-			oCNpc::GetHero()->SetPosition(HeroPos.x, HeroPos.y, HeroPos.z);
-			oCNpc::GetHero()->SetAngle(Angle.x, Angle.z, Angle.y, NAngle.x, NAngle.y, NAngle.z);
+		if(Christmas)Game->GetWorld()->StartSnow();
+            if (oCNpc::player->GetPositionWorld() != HeroPos) {
+				oCNpc::player->SetPositionWorld(HeroPos);
+                oCNpc::player->SetHeadingWorld(Angle);
 		}
 		switch(MState)
 		{
@@ -643,9 +650,9 @@ char x[2]={0, 0};
 			string_tmp = "Choose your language:";
 			Screen->Print(200, 200, string_tmp);
 			Screen->Print(200, 350, vec_choose_lang[Language]);
-			if(zCInput::GetInput()->KeyToggled(KEY_LEFT)) Language=(Language==0)?(vec_choose_lang.size()-1):Language-1;
-			if(zCInput::GetInput()->KeyToggled(KEY_RIGHT)) Language=(++Language==vec_choose_lang.size())?0:Language;
-			if(zCInput::GetInput()->KeyPressed(KEY_RETURN)) {
+			if(Input->KeyToggled(KEY_LEFT)) Language=(Language==0)?(vec_choose_lang.size()-1):Language-1;
+			if(Input->KeyToggled(KEY_RIGHT)) Language=(++Language==vec_choose_lang.size())?0:Language;
+			if(Input->KeyPressed(KEY_RETURN)) {
 				user_config->lang=Language;
 				zSTRING path=LANG_DIR;
 				path+=vec_lang_files[user_config->lang].c_str();
@@ -655,7 +662,7 @@ char x[2]={0, 0};
 				//LoadRSS(vec_lang_files[user_config->lang].c_str());
 				path.Clear();
 				vec_lang_files.clear();
-				zCInput::GetInput()->ClearKeyBuffer();
+				Input->ClearKeyBuffer();
 				MState = CHOOSE_NICKNAME;
 				delete Update;
 			}
@@ -667,14 +674,14 @@ char x[2]={0, 0};
 			}
 			else{
 				Screen->PrintCXY(UpdateNewer);
-				if(zCInput::GetInput()->AnyKeyPressed()) CGameManager::GetGameManager()->Done();
+				if(Input->AnyKeyPressed()) GameManager->Done();
 			}
 		break;
 		case CHOOSE_NICKNAME:
 			if(user_config->IsDefault() || user_config->Nickname.IsEmpty()){
 			if(!vec_choose_lang.empty()) vec_choose_lang.clear();
 			Screen->Print(200,200,(*LangSetting)[CLanguage::WRITE_NICKNAME]);
-			zCView::GetScreen()->Print(200+static_cast<zINT>(static_cast<float>((*LangSetting)[CLanguage::WRITE_NICKNAME].Length()*70)*fWRatio),200,user_config->Nickname);
+			Screen->Print(200+static_cast<zINT>(static_cast<float>((*LangSetting)[CLanguage::WRITE_NICKNAME].Length()*70)*fWRatio),200,user_config->Nickname);
 			x[0]=GInput::GetCharacterFormKeyboard();
 			if((x[0]==8) && (user_config->Nickname.Length()>0)) user_config->Nickname.DeleteRight(1);
 			if((x[0]>=0x20) && (user_config->Nickname.Length()<24)) user_config->Nickname+=x;
@@ -689,10 +696,10 @@ char x[2]={0, 0};
 		break;
 		case MENU_LOOP:
 		{
-			if(oCNpc::GetHero()->GetModel()->IsAnimationActive(WalkAnim)) oCNpc::GetHero()->GetModel()->StopAnimation(WalkAnim);
+			if(oCNpc::player->GetModel()->IsAnimationActive(WalkAnim)) oCNpc::player->GetModel()->StopAnimation(WalkAnim);
 			if(!TitleWeaponEnabled && TitleWeapon) {
 				TitleWeaponEnabled = true;
-				oCGame::GetGame()->GetWorld()->AddVob(TitleWeapon);
+				Game->GetWorld()->AddVob(TitleWeapon);
 			}
 			PrintNews();
 			if(!Christmas) SpeedUpTime();
@@ -731,7 +738,7 @@ char x[2]={0, 0};
 		case CHOOSE_SRV_LOOP:
 			if(!TitleWeaponEnabled && TitleWeapon) {
 				TitleWeaponEnabled = true;
-				oCGame::GetGame()->GetWorld()->AddVob(TitleWeapon);
+				Game->GetWorld()->AddVob(TitleWeapon);
 			}
 			if(Input->KeyPressed(KEY_RETURN)){
 				if(SelectedServer != -1){
@@ -742,23 +749,23 @@ char x[2]={0, 0};
 				}
 				Input->ClearKeyBuffer();
 				if(client){delete client; client=NULL;}
-				client=new GameClient(ServerIP.ToChar(), LangSetting);
-				if(!client->Connect()) Screen->GetPrintScreen()->PrintTimedCXY(client->GetLastError() , 5000.0f, &Red);
+				client=new CGmpClient(ServerIP.ToChar(), LangSetting);
+				if(!client->Connect()) PrintTimedScreen->PrintTimedCXY(client->GetLastError() , 5000.0f, &Red);
 				if(client->IsConnected()){
 					client->HandleNetwork();
 					client->SyncGameTime();
 					ClassSelect=new CSelectClass(LangSetting, client);
-					zVEC3 SpawnpointPos = oCNpc::GetHero()->GetPosition();
+					zVEC3 SpawnpointPos = oCNpc::player->GetPositionWorld();
 					CleanUpMainMenu();
 					Patch::PlayerInterfaceEnabled(true);
 					HooksManager::GetInstance()->RemoveHook(HT_RENDER, (DWORD)MainMenuLoop);
 					if(!client->map.IsEmpty()){
 						Patch::ChangeLevelEnabled(true);
-						oCGame::GetGame()->ChangeLevel(client->map, zSTRING("????"));
+						Game->ChangeLevel(client->map, zSTRING("????"));
 						Patch::ChangeLevelEnabled(false);
 					}
-					zCWorld::DeleteAllNpcsAlt();
-					oCNpc::GetHero()->SetPosition(SpawnpointPos.x, SpawnpointPos.y, SpawnpointPos.z);
+					//zCWorld::DeleteAllNpcsAlt();
+					oCNpc::player->SetPositionWorld(SpawnpointPos);
 					string WordBuilderMapFileName=".\\Multiplayer\\Data\\";
 					WordBuilderMapFileName+=client->network->GetServerIp() + "_" + std::to_string(client->network->GetServerPort());
 					ifstream WbMap(WordBuilderMapFileName.c_str());
@@ -838,18 +845,22 @@ char x[2]={0, 0};
 			Screen->Print(100,200, (*LangSetting)[CLanguage::APP_INFO1]);
 			if(!AppCamCreated){
 				string_tmp = "ItMw_1h_Mil_Sword";
-				AppWeapon = oCObjectFactory::GetFactory()->CreateItem(zCParser::GetParser()->GetIndex(string_tmp));
-				AppWeapon->SetPositionWorld(zVEC3(oCNpc::GetHero()->GetPosition().x-78, oCNpc::GetHero()->GetPosition().y+50, oCNpc::GetHero()->GetPosition().z-119));
+				AppWeapon = ObjectFactory->CreateItem(zCParser::GetParser()->GetIndex(string_tmp));
+                AppWeapon->SetPositionWorld(zVEC3(
+					oCNpc::player->s_playerPositionMatrix.v[0][3] - 78, //oCNpc::player->GetPosition().x-78, 
+					oCNpc::player->s_playerPositionMatrix.v[1][3] + 50, //oCNpc::player->GetPosition().y+50, 
+					oCNpc::player->s_playerPositionMatrix.v[2][3] - 119) //oCNpc::player->GetPosition().z-119)
+				);
 				AppWeapon->RotateWorldY(30);
-				AppWeapon->ClearItemName();
+                AppWeapon->name.Clear();
 				string_tmp = "HUM_BODY_NAKED0";
 				if(!user_config) user_config = CConfig::GetInstance();
 				headmodel_tmp = CPlayer::GetHeadModelNameFromByte(user_config->headmodel);
-				oCNpc::GetHero()->SetAdditionalVisuals(string_tmp, user_config->skintexture, 0, headmodel_tmp, user_config->facetexture, 0, -1);
-				oCNpc::GetHero()->GetModel()->GetDontKnow()->GetModelTexAniState()->SetSkinTexture(user_config->skintexture);
+				oCNpc::player->SetAdditionalVisuals(string_tmp, user_config->skintexture, 0, headmodel_tmp, user_config->facetexture, 0, -1);
+				oCNpc::player->GetModel()->GetDontKnow()->GetModelTexAniState()->SetSkinTexture(user_config->skintexture);
 				ChoosingApperance = ApperancePart::FACE;
 				LastApperance = ApperancePart::FACE;
-				oCGame::GetGame()->CamInit(AppWeapon, zCCamera::GetCamera());
+				Game->CamInit(AppWeapon, Camera);
 				AppCamCreated = true;
 			}
 			if((Input->KeyToggled(KEY_UP)) && (ChoosingApperance>ApperancePart::HEAD)) --ChoosingApperance;
@@ -859,7 +870,7 @@ char x[2]={0, 0};
 				Input->ClearKeyBuffer();
 				MState = MENU_LOOP;
 				user_config->SaveConfigToFile();
-				oCGame::GetGame()->CamInit(CamWeapon, zCCamera::GetCamera());
+				Game->CamInit(CamWeapon, Camera);
 			}
 			switch(ChoosingApperance){
 				default:
@@ -870,7 +881,7 @@ char x[2]={0, 0};
 					{
 						user_config->headmodel--;
 						headmodel_tmp = CPlayer::GetHeadModelNameFromByte(user_config->headmodel);
-						oCNpc::GetHero()->SetAdditionalVisuals(string_tmp, user_config->skintexture, 0, headmodel_tmp, user_config->facetexture, 0, -1);
+						oCNpc::player->SetAdditionalVisuals(string_tmp, user_config->skintexture, 0, headmodel_tmp, user_config->facetexture, 0, -1);
 					}
 				}
 				if((Input->KeyToggled(KEY_RIGHT))){
@@ -878,11 +889,15 @@ char x[2]={0, 0};
 					{
 						user_config->headmodel++;
 						headmodel_tmp = CPlayer::GetHeadModelNameFromByte(user_config->headmodel);
-						oCNpc::GetHero()->SetAdditionalVisuals(string_tmp, user_config->skintexture, 0, headmodel_tmp, user_config->facetexture, 0, -1);
+						oCNpc::player->SetAdditionalVisuals(string_tmp, user_config->skintexture, 0, headmodel_tmp, user_config->facetexture, 0, -1);
 					}
 				}
 					if(LastApperance != ChoosingApperance){
-						AppWeapon->SetPositionWorld(zVEC3(oCNpc::GetHero()->GetPosition().x+55, oCNpc::GetHero()->GetPosition().y+70, oCNpc::GetHero()->GetPosition().z-37));
+						AppWeapon->SetPositionWorld(zVEC3(
+							oCNpc::player->s_playerPositionMatrix.v[0][3] + 55,   // oCNpc::player->GetPosition().x+55,
+                            oCNpc::player->s_playerPositionMatrix.v[1][3] + 70,   // oCNpc::player->GetPosition().y+70,
+                            oCNpc::player->s_playerPositionMatrix.v[2][3] - 37)  // oCNpc::player->GetPosition().z-37)
+						);
 						AppWeapon->RotateWorldY(-90);
 						LastApperance = ChoosingApperance;
 					}
@@ -893,39 +908,43 @@ char x[2]={0, 0};
 					if(user_config->facetexture > 0)
 					{
 						user_config->facetexture--;
-						oCNpc::GetHero()->SetAdditionalVisuals(string_tmp, user_config->skintexture, 0, headmodel_tmp, user_config->facetexture, 0, -1);
+						oCNpc::player->SetAdditionalVisuals(string_tmp, user_config->skintexture, 0, headmodel_tmp, user_config->facetexture, 0, -1);
 					}
 				}
 				if((Input->KeyToggled(KEY_RIGHT))){
 					if(user_config->facetexture < 162)
 					{
 						user_config->facetexture++;
-						oCNpc::GetHero()->SetAdditionalVisuals(string_tmp, user_config->skintexture, 0, headmodel_tmp, user_config->facetexture, 0, -1);
+						oCNpc::player->SetAdditionalVisuals(string_tmp, user_config->skintexture, 0, headmodel_tmp, user_config->facetexture, 0, -1);
 					}
 				}
 					if(LastApperance != ChoosingApperance){
-					AppWeapon->SetPositionWorld(zVEC3(oCNpc::GetHero()->GetPosition().x-78, oCNpc::GetHero()->GetPosition().y+50, oCNpc::GetHero()->GetPosition().z-119));
+					AppWeapon->SetPositionWorld(zVEC3(
+						oCNpc::player->s_playerPositionMatrix.v[0][3] - 78, //oCNpc::player->GetPosition().x-78, 
+						oCNpc::player->s_playerPositionMatrix.v[1][3] + 50, //oCNpc::player->GetPosition().y+50, 
+						oCNpc::player->s_playerPositionMatrix.v[2][3] - 119) //oCNpc::player->GetPosition().z-119)
+					);
 					AppWeapon->RotateWorldY(90);
 					LastApperance = ChoosingApperance;
 					}
 					break;
 				case ApperancePart::SKIN:
 					Screen->Print(500,2000, (*LangSetting)[CLanguage::SKIN_TEXTURE]);
-					if(oCNpc::GetHero()->GetModel()->IsAnimationActive(WalkAnim)) oCNpc::GetHero()->GetModel()->StopAnimation(WalkAnim);
+					if(oCNpc::player->GetModel()->IsAnimationActive(WalkAnim)) oCNpc::player->GetModel()->StopAnimation(WalkAnim);
 				if((Input->KeyToggled(KEY_LEFT))){
 					if(user_config->skintexture > 0)
 					{
 						user_config->skintexture--;
-						oCNpc::GetHero()->SetAdditionalVisuals(string_tmp, user_config->skintexture, 0, headmodel_tmp, user_config->facetexture, 0, -1);
-						oCNpc::GetHero()->GetModel()->GetDontKnow()->GetModelTexAniState()->SetSkinTexture(user_config->skintexture);
+						oCNpc::player->SetAdditionalVisuals(string_tmp, user_config->skintexture, 0, headmodel_tmp, user_config->facetexture, 0, -1);
+						oCNpc::player->GetModel()->GetDontKnow()->GetModelTexAniState()->SetSkinTexture(user_config->skintexture);
 					}
 				}
 				if((Input->KeyToggled(KEY_RIGHT))){
 					if(user_config->skintexture < 12)
 					{
 						user_config->skintexture++;
-						oCNpc::GetHero()->SetAdditionalVisuals(string_tmp, user_config->skintexture, 0, headmodel_tmp, user_config->facetexture, 0, -1);
-						oCNpc::GetHero()->GetModel()->GetDontKnow()->GetModelTexAniState()->SetSkinTexture(user_config->skintexture);
+						oCNpc::player->SetAdditionalVisuals(string_tmp, user_config->skintexture, 0, headmodel_tmp, user_config->facetexture, 0, -1);
+						oCNpc::player->GetModel()->GetDontKnow()->GetModelTexAniState()->SetSkinTexture(user_config->skintexture);
 					}
 				}
 				break;
@@ -935,31 +954,34 @@ char x[2]={0, 0};
 					Input->ClearKeyBuffer();
 					if(user_config->walkstyle > 0)
 					{
-						if(oCNpc::GetHero()->GetModel()->IsAnimationActive(WalkAnim)) oCNpc::GetHero()->GetModel()->StopAnimation(WalkAnim);
-						oCNpc::GetHero()->RemoveOverlay(Walkstyle_tmp);
+						if(oCNpc::player->GetModel()->IsAnimationActive(WalkAnim)) oCNpc::player->GetModel()->StopAnimation(WalkAnim);
+						oCNpc::player->RemoveOverlay(Walkstyle_tmp);
 						user_config->walkstyle--;
 						Walkstyle_tmp = CPlayer::GetWalkStyleFromByte(user_config->walkstyle);
-						oCNpc::GetHero()->ApplyOverlay(Walkstyle_tmp);
+						oCNpc::player->ApplyOverlay(Walkstyle_tmp);
 					}
 				}
 				if((Input->KeyPressed(KEY_RIGHT))){
 					Input->ClearKeyBuffer();
 					if(user_config->walkstyle < 6)
 					{
-						if(oCNpc::GetHero()->GetModel()->IsAnimationActive(WalkAnim)) oCNpc::GetHero()->GetModel()->StopAnimation(WalkAnim);
-						oCNpc::GetHero()->RemoveOverlay(Walkstyle_tmp);
+						if(oCNpc::player->GetModel()->IsAnimationActive(WalkAnim)) oCNpc::player->GetModel()->StopAnimation(WalkAnim);
+						oCNpc::player->RemoveOverlay(Walkstyle_tmp);
 						user_config->walkstyle++;
 						Walkstyle_tmp = CPlayer::GetWalkStyleFromByte(user_config->walkstyle);
-						oCNpc::GetHero()->ApplyOverlay(Walkstyle_tmp);
+						oCNpc::player->ApplyOverlay(Walkstyle_tmp);
 					}
 				}
-				if(!oCNpc::GetHero()->GetModel()->IsAnimationActive(WalkAnim)) oCNpc::GetHero()->GetModel()->StartAnimation(WalkAnim);
-				oCNpc::GetHero()->SetPosition(HeroPos.x, HeroPos.y, HeroPos.z);
+				if(!oCNpc::player->GetModel()->IsAnimationActive(WalkAnim)) oCNpc::player->GetModel()->StartAnimation(WalkAnim);
+				//oCNpc::player->SetPosition(HeroPos.x, HeroPos.y, HeroPos.z);
+                                oCNpc::player->trafoObjToWorld.v[0][3] = HeroPos.n[0];
+                                oCNpc::player->trafoObjToWorld.v[1][3] = HeroPos.n[1];
+                                oCNpc::player->trafoObjToWorld.v[2][3] = HeroPos.n[2];
 				break;
 			}
 		break;
 		case MENU_OPTIONS:
-			if(!oCNpc::GetHero()->IsMovLock()) oCNpc::GetHero()->SetMovLock(1);
+			if(!oCNpc::player->IsMovLock()) oCNpc::player->SetMovLock(1);
 			if(TitleWeapon) TitleWeapon->RotateWorldX(0.6f);
 			if(memcmp("MENU_OPTIONS", zCMenu::GetActive()->GetName().ToChar(), 12)==0 && Input->KeyPressed(KEY_ESCAPE)) LeaveOptionsMenu();
 			if(memcmp("MENUITEM_OPT_BACK", Options->GetActiveItem()->GetName().ToChar(), 17)==0 && Input->KeyPressed(KEY_RETURN)) LeaveOptionsMenu();
@@ -1039,7 +1061,7 @@ char x[2]={0, 0};
 		break;
 		case WRITE_WORLDNAME:
 			if(TitleWeapon) TitleWeapon->RotateWorldX(0.6f);
-			if(zCInput::GetInput()->KeyToggled(KEY_ESCAPE)){
+			if(Input->KeyToggled(KEY_ESCAPE)){
 				ps=WORLDBUILDER_MENU;
 				MState=MENU_WORLDBUILDER;
 			}
@@ -1058,7 +1080,7 @@ char x[2]={0, 0};
 				if(!memcmp("OLDWORLD.ZEN", WBMapName.ToChar(), 12)){WBMapName = "OLDWORLD\\OLDWORLD.ZEN";};
 				if(!memcmp("ADDONWORLD.ZEN", WBMapName.ToChar(), 13)){WBMapName = "ADDON\\ADDONWORLD.ZEN";};
 				Patch::ChangeLevelEnabled(true);
-				oCGame::GetGame()->ChangeLevel(WBMapName, zSTRING("????"));
+				Game->ChangeLevel(WBMapName, zSTRING("????"));
 				Patch::ChangeLevelEnabled(false);
 ALLDONE:
 				zCWorld::DeleteAllNpcsAlt();
@@ -1070,7 +1092,7 @@ ALLDONE:
 		break;
 		case LOAD_WBMAP:
 			if(TitleWeapon) TitleWeapon->RotateWorldX(0.6f);
-			if(zCInput::GetInput()->KeyToggled(KEY_ESCAPE)){
+			if(Input->KeyToggled(KEY_ESCAPE)){
 				ps=WORLDBUILDER_MENU;
 				MState=MENU_WORLDBUILDER;
 			}
@@ -1091,7 +1113,7 @@ ALLDONE:
 					};
 					WBMapName = Map.c_str();
 					Patch::ChangeLevelEnabled(true);
-					oCGame::GetGame()->ChangeLevel(WBMapName, zSTRING("????"));
+					Game->ChangeLevel(WBMapName, zSTRING("????"));
 					Patch::ChangeLevelEnabled(false);
 ALLDONE2:
 					zCWorld::DeleteAllNpcsAlt();

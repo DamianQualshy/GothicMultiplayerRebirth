@@ -44,6 +44,10 @@ SOFTWARE.
 
 #include <spdlog/spdlog.h>
 
+using namespace Gothic_II_Addon;
+
+oCGame* Game;
+
 
 // NEEDED FOR SETTING NPC TYPES
 #define B_SETVISUALS "B_SETVISUALS"
@@ -134,7 +138,7 @@ void CPlayer::DeleteAllPlayers()
 	global_ingame->Shrinker->UnShrinkAll();
 	for(size_t i=1; i<client->player.size(); i++){
 			client->player[i]->npc->GetSpellBook()->Close(1);
-			oCGame::GetGame()->GetSpawnManager()->DeleteNpc(client->player[i]->npc);
+			Game->GetSpawnManager()->DeleteNpc(client->player[i]->npc);
 			delete client->player[i];
 	}
 	client->player.clear();
@@ -210,12 +214,12 @@ CPlayer* CPlayer::GetLocalPlayer()
 
 const char* CPlayer::GetName()
 {
-	return this->npc->GetName().ToChar();
+	return this->npc->name[0].ToChar();
 };
 
 int CPlayer::GetNameLength()
 {
-	return this->npc->GetName().Length();
+	return this->npc->name[0].Length();
 };
 
 zSTRING& CPlayer::GetWalkStyleFromByte(BYTE walkstyle)
@@ -272,7 +276,7 @@ void CPlayer::LeaveGame()
 {
 	if(global_ingame->Shrinker->IsShrinked(npc)) global_ingame->Shrinker->UnShrinkNpc(npc);
 	this->npc->GetSpellBook()->Close(1);
-	if(this->npc) oCGame::GetGame()->GetSpawnManager()->DeleteNpc(npc);
+	if(this->npc) Game->GetSpawnManager()->DeleteNpc(npc);
 	else
 	{ 
 		SPDLOG_ERROR("Error Code: 0x00");
@@ -365,7 +369,7 @@ void CPlayer::SetNpcType(NpcType TYPE)
 	{
 		case NPC_HUMAN:
 		{
-			oCNpc* New = oCObjectFactory::GetFactory()->CreateNpc(zCParser::GetParser()->GetIndex(PCHERO));
+			oCNpc* New = zfactory->CreateNpc(zCParser::GetParser()->GetIndex(PCHERO));
 			if(!IsLocalPlayer()) New->startAIState = 0;
 			New->Enable(npc->GetPosition());
 			if(IsLocalPlayer()){
@@ -374,74 +378,74 @@ void CPlayer::SetNpcType(NpcType TYPE)
 				New->GetModel()->ApplyModelProtoOverlay(CPlayer::GetWalkStyleFromByte(user_config->walkstyle));
 			}
 			if(IsLocalPlayer()) New->SetAsPlayer();
-			New->SetName(this->npc->GetName());
-			oCGame::GetGame()->GetSpawnManager()->DeleteNpc(this->npc);
+			New->name[0] = (this->npc->name[0]);
+			Game->GetSpawnManager()->DeleteNpc(this->npc);
 			SetNpc(New);
 		}
 		break;
 		case NPC_ORCWARRIOR:
 		{
-			oCNpc* New = oCObjectFactory::GetFactory()->CreateNpc(zCParser::GetParser()->GetIndex(ORCWARRIOR));
+			oCNpc* New = zfactory->CreateNpc(zCParser::GetParser()->GetIndex(ORCWARRIOR));
 			if(!IsLocalPlayer()) New->startAIState = 0;
 			New->Enable(npc->GetPosition());
 			if(IsLocalPlayer()) New->SetAsPlayer();
-			New->SetName(this->npc->GetName());
-			oCGame::GetGame()->GetSpawnManager()->DeleteNpc(this->npc);
+			New->name[0] = (this->npc->name[0]);
+			Game->GetSpawnManager()->DeleteNpc(this->npc);
 			SetNpc(New);
 		}
 		break;
 		case NPC_ORCELITE:
 		{
-			oCNpc* New = oCObjectFactory::GetFactory()->CreateNpc(zCParser::GetParser()->GetIndex(ORCELITE));
+			oCNpc* New = zfactory->CreateNpc(zCParser::GetParser()->GetIndex(ORCELITE));
 			if(!IsLocalPlayer()) New->startAIState = 0;
 			New->Enable(npc->GetPosition());
 			if(IsLocalPlayer()) New->SetAsPlayer();
-			New->SetName(this->npc->GetName());
-			oCGame::GetGame()->GetSpawnManager()->DeleteNpc(npc);
+			New->name[0] = (this->npc->name[0]);
+			Game->GetSpawnManager()->DeleteNpc(npc);
 			SetNpc(New);
 		}
 		break;
 		case NPC_ORCSHAMAN:
 		{
-			oCNpc* New = oCObjectFactory::GetFactory()->CreateNpc(zCParser::GetParser()->GetIndex(ORCSHAMAN));
+			oCNpc* New = zfactory->CreateNpc(zCParser::GetParser()->GetIndex(ORCSHAMAN));
 			if(!IsLocalPlayer()) New->startAIState = 0;
 			New->Enable(npc->GetPosition());
 			if(IsLocalPlayer()) New->SetAsPlayer();
-			New->SetName(this->npc->GetName());
-			oCGame::GetGame()->GetSpawnManager()->DeleteNpc(npc);
+			New->name[0] = (this->npc->name[0]);
+			Game->GetSpawnManager()->DeleteNpc(npc);
 			SetNpc(New);
 		}
 		break;
 		case NPC_UNDEADORC:
 		{
-			oCNpc* New = oCObjectFactory::GetFactory()->CreateNpc(zCParser::GetParser()->GetIndex(UNDEADORC));
+			oCNpc* New = zfactory->CreateNpc(zCParser::GetParser()->GetIndex(UNDEADORC));
 			if(!IsLocalPlayer()) New->startAIState = 0;
 			New->Enable(npc->GetPosition());
 			if(IsLocalPlayer()) New->SetAsPlayer();
-			New->SetName(this->npc->GetName());
-			oCGame::GetGame()->GetSpawnManager()->DeleteNpc(npc);
+			New->name[0] = (this->npc->name[0]);
+			Game->GetSpawnManager()->DeleteNpc(npc);
 			SetNpc(New);
 		}
 		break;
 		case NPC_SHEEP:
 		{
-			oCNpc* New = oCObjectFactory::GetFactory()->CreateNpc(zCParser::GetParser()->GetIndex(SHEEP));
+			oCNpc* New = zfactory->CreateNpc(zCParser::GetParser()->GetIndex(SHEEP));
 			if(!IsLocalPlayer()) New->startAIState = 0;
 			New->Enable(npc->GetPosition());
 			if(IsLocalPlayer()) New->SetAsPlayer();
-			New->SetName(this->npc->GetName());
-			oCGame::GetGame()->GetSpawnManager()->DeleteNpc(npc);
+			New->name[0] = (this->npc->name[0]);
+			Game->GetSpawnManager()->DeleteNpc(npc);
 			SetNpc(New);
 		}
 		break;
 		case NPC_DRACONIAN:
 		{
-			oCNpc* New = oCObjectFactory::GetFactory()->CreateNpc(zCParser::GetParser()->GetIndex(DRACONIAN));
+			oCNpc* New = zfactory->CreateNpc(zCParser::GetParser()->GetIndex(DRACONIAN));
 			if(!IsLocalPlayer()) New->startAIState = 0;
 			New->Enable(npc->GetPosition());
 			if(IsLocalPlayer()) New->SetAsPlayer();
-			New->SetName(this->npc->GetName());
-			oCGame::GetGame()->GetSpawnManager()->DeleteNpc(npc);
+			New->name[0] = (this->npc->name[0]);
+			Game->GetSpawnManager()->DeleteNpc(npc);
 			SetNpc(New);
 		}
 		break;

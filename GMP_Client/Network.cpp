@@ -35,6 +35,8 @@ SOFTWARE.
 #include "PacketHandlers/Game.hpp"
 #include "znet_client.h"
 
+using namespace Gothic_II_Addon;
+
 static Net::NetClient* g_netclient = nullptr;
 
 Network::Network(GameClient* client) {

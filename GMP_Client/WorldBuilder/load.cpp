@@ -26,6 +26,10 @@ SOFTWARE.
 #pragma warning( disable : 4996 )
 #include "load.h"
 
+using namespace Gothic_II_Addon;
+
+oCGame* Game;
+
 void LoadWorld::LoadWorld(const char* MapName, vector<Info>& Vobs)
 {
 	FILE *file = fopen(MapName, "rb");
@@ -82,17 +86,17 @@ void LoadWorld::LoadWorld(const char* MapName, vector<Info>& Vobs)
 				}
 				tmp = strtmp.c_str();
 				MobInter->SetVisualInter(zCVisual::LoadVisual(tmp));
-				MobInter->trafoObjToWorld.m[0][0] = *(float*)(code);
-				MobInter->trafoObjToWorld.m[1][0] = *(float*)(code+4);
-				MobInter->trafoObjToWorld.m[2][0] = *(float*)(code+8);
-				MobInter->trafoObjToWorld.m[0][2] = *(float*)(code+12);
-				MobInter->trafoObjToWorld.m[1][2] = *(float*)(code+16);
-				MobInter->trafoObjToWorld.m[2][2] = *(float*)(code+20);
-				MobInter->trafoObjToWorld.m[0][1] = *(float*)(code+24);
-				MobInter->trafoObjToWorld.m[1][1] = *(float*)(code+28);
-				MobInter->trafoObjToWorld.m[2][1] = *(float*)(code+32);
+				MobInter->trafoObjToWorld.v[0][0] = *(float*)(code);
+				MobInter->trafoObjToWorld.v[1][0] = *(float*)(code+4);
+				MobInter->trafoObjToWorld.v[2][0] = *(float*)(code+8);
+				MobInter->trafoObjToWorld.v[0][2] = *(float*)(code+12);
+				MobInter->trafoObjToWorld.v[1][2] = *(float*)(code+16);
+				MobInter->trafoObjToWorld.v[2][2] = *(float*)(code+20);
+				MobInter->trafoObjToWorld.v[0][1] = *(float*)(code+24);
+				MobInter->trafoObjToWorld.v[1][1] = *(float*)(code+28);
+				MobInter->trafoObjToWorld.v[2][1] = *(float*)(code+32);
 				memset(code, 0, 64);
-				oCGame::GetGame()->GetWorld()->AddVob(MobInter);
+				Game->GetWorld()->AddVob(MobInter);
 				MobInter->SetPositionWorld(Pos);
 				info.Vob = MobInter;
 				Vobs.push_back(info);
@@ -121,14 +125,14 @@ void LoadWorld::LoadWorld(const char* MapName, vector<Info>& Vobs)
 				ParticleVisual->GetEmitter()->SetLooping(1);
 				Particle->SetVisual(ParticleVisual);
 				Particle->SetPositionWorld(Pos);
-				Particle->trafoObjToWorld.m[0][0] = *(float*)(code);
-				Particle->trafoObjToWorld.m[1][0] = *(float*)(code+4);
-				Particle->trafoObjToWorld.m[2][0] = *(float*)(code+8);
-				Particle->trafoObjToWorld.m[0][2] = *(float*)(code+12);
-				Particle->trafoObjToWorld.m[1][2] = *(float*)(code+16);
-				Particle->trafoObjToWorld.m[2][2] = *(float*)(code+20);
+				Particle->trafoObjToWorld.v[0][0] = *(float*)(code);
+				Particle->trafoObjToWorld.v[1][0] = *(float*)(code+4);
+				Particle->trafoObjToWorld.v[2][0] = *(float*)(code+8);
+				Particle->trafoObjToWorld.v[0][2] = *(float*)(code+12);
+				Particle->trafoObjToWorld.v[1][2] = *(float*)(code+16);
+				Particle->trafoObjToWorld.v[2][2] = *(float*)(code+20);
 				memset(code, 0, 64);
-				oCGame::GetGame()->GetWorld()->AddVob(Particle);
+				Game->GetWorld()->AddVob(Particle);
 				info.Vob = Particle;
 				Vobs.push_back(info);
 				continue;
@@ -163,17 +167,17 @@ void LoadWorld::LoadWorld(const char* MapName, vector<Info>& Vobs)
 				}
 				tmp = strtmp.c_str();
 				MobInter->SetVisualInter(zCVisual::LoadVisual(tmp));
-				MobInter->trafoObjToWorld.m[0][0] = *(float*)(code);
-				MobInter->trafoObjToWorld.m[1][0] = *(float*)(code+4);
-				MobInter->trafoObjToWorld.m[2][0] = *(float*)(code+8);
-				MobInter->trafoObjToWorld.m[0][2] = *(float*)(code+12);
-				MobInter->trafoObjToWorld.m[1][2] = *(float*)(code+16);
-				MobInter->trafoObjToWorld.m[2][2] = *(float*)(code+20);
-				MobInter->trafoObjToWorld.m[0][1] = *(float*)(code+24);
-				MobInter->trafoObjToWorld.m[1][1] = *(float*)(code+28);
-				MobInter->trafoObjToWorld.m[2][1] = *(float*)(code+32);
+				MobInter->trafoObjToWorld.v[0][0] = *(float*)(code);
+				MobInter->trafoObjToWorld.v[1][0] = *(float*)(code+4);
+				MobInter->trafoObjToWorld.v[2][0] = *(float*)(code+8);
+				MobInter->trafoObjToWorld.v[0][2] = *(float*)(code+12);
+				MobInter->trafoObjToWorld.v[1][2] = *(float*)(code+16);
+				MobInter->trafoObjToWorld.v[2][2] = *(float*)(code+20);
+				MobInter->trafoObjToWorld.v[0][1] = *(float*)(code+24);
+				MobInter->trafoObjToWorld.v[1][1] = *(float*)(code+28);
+				MobInter->trafoObjToWorld.v[2][1] = *(float*)(code+32);
 				memset(code, 0, 64);
-				oCGame::GetGame()->GetWorld()->AddVob(MobInter);
+				Game->GetWorld()->AddVob(MobInter);
 				MobInter->SetPositionWorld(Pos);
 				info.Vob = MobInter;
 				Vobs.push_back(info);

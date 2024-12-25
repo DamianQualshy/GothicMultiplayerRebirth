@@ -36,7 +36,7 @@ endif()
 
 set(VCPKG_OVERLAY_TRIPLETS "${CMAKE_SOURCE_DIR}/triplets")
 
-project(GothicMultiplayer VERSION 0.2 DESCRIPTION "Gothic Multiplayer" LANGUAGES CXX)
+project(GothicMultiplayer VERSION 0.3 DESCRIPTION "Gothic Multiplayer" LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -79,7 +79,7 @@ if (WIN32)
     find_path(
         DX7SDK_INCLUDE_DIR
         NAMES "d3d.h" "ddraw.h" "dinput.h"
-        PATHS "./GMP_Client/dx7sdk/inc"
+        PATHS "./GMP_Client/union/gothic-api/ZenGin/DirectX7"
         REQUIRED
     )
 

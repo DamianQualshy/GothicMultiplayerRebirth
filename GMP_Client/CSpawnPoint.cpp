@@ -25,6 +25,8 @@ SOFTWARE.
 
 #include "CSpawnPoint.h"
 
+using namespace Gothic_II_Addon;
+
 CSpawnPoint::CSpawnPoint(const char *source){
 	int a,b,c;
 	const char *ptr=(char*)source;

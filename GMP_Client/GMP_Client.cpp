@@ -32,16 +32,20 @@ SOFTWARE.
 #include "HooksManager.h"
 #include "Mod.h"
 #include "common.h"
-#include "ocgame.hpp"
 #include "patch.h"
 #include "Network.h"
-#include "zcoption.hpp"
 
 #include <SDL.h>
 #include <SDL_syswm.h> 
 
+#include <ZenGin/zGothicAPI.h>
+
+using namespace Gothic_II_Addon;
+
 DWORD IdWatku;
 SDL_Window* g_pSdlWindow;
+
+zSTRING* zOPT_SEC_VIDEO;
 
 #define hInstApp *(HINSTANCE*)(0x008D4220)
 #define VideoH *(int*)(0x008D2BE0)
@@ -122,7 +126,7 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
     Patch::DisableStartupScript();
     Patch::DisableAbnormalExit();
     Patch::AlwaysNoMenu();
-    oCGame::InstallPatches();
+    //oCGame::InstallPatches();
     HooksManager* hm = HooksManager::GetInstance();
     hm->AddHook(HT_AIMOVING, (DWORD)Initialize, false);
     CreateThread(NULL, 0, CheckForBadApps, 0, 0, &IdWatku);

@@ -30,6 +30,8 @@ SOFTWARE.
 #include "game_client.h"
 
 extern GameClient* client;
+using namespace Gothic_II_Addon;
+
 extern CLanguage* Lang;
 extern zCOLOR Normal;
 extern zCOLOR Highlighted;
@@ -60,8 +62,8 @@ bool CPlayerList::IsPlayerListOpen() {
 
 bool CPlayerList::OpenPlayerList() {
   if (!Opened) {
-    zCView::GetScreen()->InsertItem(PlayerListBackground);
-    oCNpc::GetHero()->GetAnictrl()->StopTurnAnis();
+    screen->InsertItem(PlayerListBackground);
+    oCNpc::player->GetAnictrl()->StopTurnAnis();
     MenuPos = 1, PrintTo = 0, PrintFrom = 1;
     Opened = true;
     return true;
@@ -72,8 +74,8 @@ bool CPlayerList::OpenPlayerList() {
 bool CPlayerList::ClosePlayerList() {
   if (Opened) {
     ChPlayerNpc = NULL;
-    zCView::GetScreen()->RemoveItem(PlayerListBackground);
-    oCNpc::GetHero()->SetMovLock(0);
+    screen->RemoveItem(PlayerListBackground);
+    oCNpc::player->SetMovLock(0);
     PlayerOptions = false;
     Opened = false;
     return true;
@@ -110,8 +112,8 @@ void CPlayerList::RunPlayerListItem() {
       ClosePlayerList();
       break;
     case 5:
-      if (!oCNpc::GetHero()->IsDead()) {
-        oCNpc::GetHero()->SetPosition(ChPlayerNpc->GetPosition().x, ChPlayerNpc->GetPosition().y + 100, ChPlayerNpc->GetPosition().z);
+      if (!oCNpc::player->IsDead()) {
+        oCNpc::player->SetPosition(ChPlayerNpc->GetPosition().x, ChPlayerNpc->GetPosition().y + 100, ChPlayerNpc->GetPosition().z);
       }
       ClosePlayerList();
       break;
@@ -119,8 +121,8 @@ void CPlayerList::RunPlayerListItem() {
 };
 
 void CPlayerList::UpdatePlayerList() {
-  if (!oCNpc::GetHero()->IsMovLock())
-    oCNpc::GetHero()->SetMovLock(1);
+  if (!oCNpc::player->IsMovLock())
+    oCNpc::player->SetMovLock(1);
   if (!PlayerOptions) {
     // INIT
     if (MenuPos > (int)client->player.size() - 1)
@@ -128,7 +130,7 @@ void CPlayerList::UpdatePlayerList() {
     if (PrintFrom > (int)client->player.size() - 1)
       PrintFrom--;
     // INPUT
-    zCInput* input = zCInput::GetInput();
+    zCInput* input = zinput;
     if (client->player.size() > 1) {
       if (input->KeyToggled(KEY_UP)) {
         if (MenuPos > 1)
@@ -154,7 +156,7 @@ void CPlayerList::UpdatePlayerList() {
       }
     }
     // PRINT
-    zCView* Screen = zCView::GetScreen();
+    zCView* Screen = screen;
     Screen->SetFontColor(Normal);
     if (client->game_mode == 0)
       Screen->Print(x + 400, y, (*Lang)[CLanguage::DEATHMATCH]);
@@ -194,7 +196,7 @@ void CPlayerList::UpdatePlayerList() {
       Screen->Print(x + 400, y + 200, (*Lang)[CLanguage::NOPLAYERS]);
   } else {
     // INPUT
-    zCInput* input = zCInput::GetInput();
+    zCInput* input = zinput;
     if (input->KeyToggled(KEY_UP)) {
       if (MenuPos > 0)
         MenuPos--;
@@ -213,7 +215,7 @@ void CPlayerList::UpdatePlayerList() {
       RunPlayerListItem();
     }
     // PRINT
-    zCView* Screen = zCView::GetScreen();
+    zCView* Screen = screen;
     Screen->SetFontColor(Normal);
     Screen->Print(x + 400, y, ChosenPlayer);
     FColors1 = (MenuPos == 0) ? Highlighted : Normal;

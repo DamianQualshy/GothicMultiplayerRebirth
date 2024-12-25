@@ -31,8 +31,12 @@ SOFTWARE.
 #include <cstring>
 #include <pugixml.hpp>
 
+using namespace Gothic_II_Addon;
+
 // CHECK FOR SUMMON SPELLS
 zSTRING Sum = "TRF";
+
+oCNpcInventory* Inventory;
 
 SHeroClass::~SHeroClass(void)
 {
@@ -147,6 +151,7 @@ enum
 
 void CHeroClass::EquipNPC(size_t offset, CPlayer *Player, bool clear_inventory)
 {
+  Inventory->SetOwner(Player->npc);
   if (!Player)
     return;
   if (!Player->npc)
@@ -165,28 +170,28 @@ void CHeroClass::EquipNPC(size_t offset, CPlayer *Player, bool clear_inventory)
     ptr = npc->GetEquippedRangedWeapon();
     if (ptr)
       npc->UnequipItem(ptr);
-    npc->GetInventory()->ClearInventory();
+    Inventory->ClearInventory();
   }
   if (offset >= this->data.size())
     return;
-  npc->SetStrength(data[offset]->strength);
-  npc->SetDexterity(data[offset]->dexterity);
-  npc->SetMaxHealth(data[offset]->hp);
-  npc->SetHealth(data[offset]->hp);
-  npc->SetMaxMana(data[offset]->mp);
-  npc->SetMana(data[offset]->mp);
+  npc->attribute[NPC_ATR_STRENGTH] = data[offset]->strength;
+  npc->attribute[NPC_ATR_DEXTERITY] = data[offset]->dexterity;
+  npc->attribute[NPC_ATR_HITPOINTS] = data[offset]->hp;
+  npc->attribute[NPC_ATR_HITPOINTSMAX] = data[offset]->hp;
+  npc->attribute[NPC_ATR_MANA] = data[offset]->mp;
+  npc->attribute[NPC_ATR_MANAMAX] = data[offset]->mp;
   npc->SetTalentSkill(ONEHAND_WEAPON_SKILL, data[offset]->skill[SHeroClass::AB_1HWEP] / 30);
   npc->SetTalentValue(ONEHAND_WEAPON_SKILL, data[offset]->skill[SHeroClass::AB_1HWEP] / 30);
-  npc->hitChance[1] = data[offset]->skill[SHeroClass::AB_1HWEP];
+  npc->hitChance[NPC_HITCHANCE_1H] = data[offset]->skill[SHeroClass::AB_1HWEP];
   npc->SetTalentSkill(TWOHAND_WEAPON_SKILL, data[offset]->skill[SHeroClass::AB_2HWEP] / 30);
   npc->SetTalentValue(TWOHAND_WEAPON_SKILL, data[offset]->skill[SHeroClass::AB_2HWEP] / 30);
-  npc->hitChance[2] = data[offset]->skill[SHeroClass::AB_2HWEP];
+  npc->hitChance[NPC_HITCHANCE_2H] = data[offset]->skill[SHeroClass::AB_2HWEP];
   npc->SetTalentSkill(BOW_SKILL, data[offset]->skill[SHeroClass::AB_BOW] / 30);
   npc->SetTalentValue(BOW_SKILL, data[offset]->skill[SHeroClass::AB_BOW] / 30);
-  npc->hitChance[3] = data[offset]->skill[SHeroClass::AB_BOW];
+  npc->hitChance[NPC_HITCHANCE_BOW] = data[offset]->skill[SHeroClass::AB_BOW];
   npc->SetTalentSkill(XBOW_SKILL, data[offset]->skill[SHeroClass::AB_XBOW] / 30);
   npc->SetTalentValue(XBOW_SKILL, data[offset]->skill[SHeroClass::AB_XBOW] / 30);
-  npc->hitChance[4] = data[offset]->skill[SHeroClass::AB_XBOW];
+  npc->hitChance[NPC_HITCHANCE_CROSSBOW] = data[offset]->skill[SHeroClass::AB_XBOW];
   npc->SetTalentSkill(MAGIC_LEVEL, data[offset]->skill[SHeroClass::AB_MAGIC_LVL]);
   npc->SetTalentValue(MAGIC_LEVEL, data[offset]->skill[SHeroClass::AB_MAGIC_LVL]);
   npc->SetTalentSkill(SNEAK_SKILL, data[offset]->skill[SHeroClass::AB_SNEAK]);
@@ -195,25 +200,25 @@ void CHeroClass::EquipNPC(size_t offset, CPlayer *Player, bool clear_inventory)
   npc->SetTalentValue(ACROBATIC_SKILL, data[offset]->skill[SHeroClass::AB_ACROBATICS]);
   npc->SetTalentSkill(PICKLOCK_SKILL, data[offset]->skill[SHeroClass::AB_LOCKPICK]);
   npc->SetTalentValue(PICKLOCK_SKILL, data[offset]->skill[SHeroClass::AB_LOCKPICK]);
-  oCObjectFactory *objectfactory = oCObjectFactory::GetFactory();
-  if (npc == oCNpc::GetHero())
+  oCObjectFactory* objectfactory;
+  if (npc == oCNpc::player)
   {
     if (data[offset]->armor.index > 0)
-      npc->Equip(npc->GetInventory()->Insert(objectfactory->CreateItem(data[offset]->armor.index)));
+      npc->Equip(Inventory->Insert(objectfactory->CreateItem(data[offset]->armor.index)));
   }
-  if (npc == oCNpc::GetHero())
+  if (npc == oCNpc::player)
   {
     if (data[offset]->sec_wep.index > 0)
-      npc->EquipWeapon(npc->GetInventory()->Insert(objectfactory->CreateItem(data[offset]->sec_wep.index)));
+      npc->EquipWeapon(Inventory->Insert(objectfactory->CreateItem(data[offset]->sec_wep.index)));
     if (data[offset]->prim_wep.index > 0)
-      npc->EquipWeapon(npc->GetInventory()->Insert(objectfactory->CreateItem(data[offset]->prim_wep.index)));
+      npc->EquipWeapon(Inventory->Insert(objectfactory->CreateItem(data[offset]->prim_wep.index)));
   }
   else
   {
     if (data[offset]->sec_wep.index > 0)
-      npc->GetInventory()->Insert(objectfactory->CreateItem(data[offset]->sec_wep.index));
+      Inventory->Insert(objectfactory->CreateItem(data[offset]->sec_wep.index));
     if (data[offset]->prim_wep.index > 0)
-      npc->GetInventory()->Insert(objectfactory->CreateItem(data[offset]->prim_wep.index));
+      Inventory->Insert(objectfactory->CreateItem(data[offset]->prim_wep.index));
   }
   printf("Number of items: %u\n", data[offset]->items.size());
   npc->DestroySpellBook();
@@ -223,20 +228,20 @@ void CHeroClass::EquipNPC(size_t offset, CPlayer *Player, bool clear_inventory)
     oCItem *Item = objectfactory->CreateItem(data[offset]->items[i]->index);
     if (Item)
     {
-      Item->SetAmount(data[offset]->items[i]->count);
-      npc->GetInventory()->Insert(Item);
-      if (npc == oCNpc::GetHero())
+      Item->amount = data[offset]->items[i]->count;
+      Inventory->Insert(Item);
+      if (npc == oCNpc::player)
       {
         if (Item->HasFlag(512))
         {
-          if (Item->GetInstanceName().Search(Sum) < 2)
+          if (Item->GetInstanceName().Search(Sum, 0) < 2)
           {
             if (npc->CanUse(Item))
               npc->Equip(Item);
           }
           else
           {
-            npc->GetInventory()->Remove(Item);
+            Inventory->Remove(Item);
             Item->RemoveVobFromWorld();
           }
         }

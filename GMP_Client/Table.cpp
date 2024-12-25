@@ -38,6 +38,7 @@ SOFTWARE.
 #include "Table.h"
 #include <ZenGin/zGothicAPI.h>
 #include <stdio.h>
+using namespace Gothic_II_Addon;
 using namespace G2W;
 
 Table::Table(int x, int y, int width, int height, int interline, int visibleRows ){

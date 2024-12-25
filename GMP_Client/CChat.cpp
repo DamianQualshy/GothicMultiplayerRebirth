@@ -39,10 +39,15 @@ SOFTWARE.
 #include "CLanguage.h"
 #include <spdlog/spdlog.h>
 
+using namespace Gothic_II_Addon;
+
 extern zSTRING FDefault;
 extern zCOLOR Normal;
 extern zCView* PrintTimedScreen;
 extern CLanguage* Lang;
+
+zCInput* Input;
+zCView* Screen;
 
 CChat::CChat()
 {
@@ -50,7 +55,6 @@ CChat::CChat()
 	tmpanimname = "NULL";
 	tmpnickname = CConfig::GetInstance()->Nickname;
 	ShowHow = false;
-	Input = zCInput::GetInput();
 	WriteMessage(WHISPER, false, zCOLOR(0,255,0), (*Lang)[CLanguage::CHAT_WHISPERTONOONE].ToChar());
 };
 
@@ -64,15 +68,15 @@ CChat::~CChat()
 
 void CChat::StartChatAnimation(int anim)
 {
-  if (oCNpc::GetHero()->IsDead() || oCNpc::GetHero()->GetAnictrl()->IsRunning() ||
-      oCNpc::GetHero()->GetAnictrl()->IsInWater() || oCNpc::GetHero()->GetAnictrl()->IsFallen())
+  if (oCNpc::player->IsDead() || oCNpc::player->GetAnictrl()->IsRunning() ||
+      oCNpc::player->GetAnictrl()->IsInWater() || oCNpc::player->GetAnictrl()->IsFallen())
   {
     return;
   }
-  if (!oCNpc::GetHero()->GetModel()->IsAnimationActive(tmpanimname))
+  if (!oCNpc::player->GetModel()->IsAnimationActive(tmpanimname))
   {
     tmpanimname = fmt::format("T_DIALOGGESTURE_{:02}", anim).c_str();
-    oCNpc::GetHero()->GetModel()->StartAnimation(tmpanimname);
+    oCNpc::player->GetModel()->StartAnimation(tmpanimname);
   }
 }
 
@@ -108,12 +112,12 @@ void CChat::WriteMessage(MsgType type, bool PrintTimed, zCOLOR& rgb, const char 
 				if(PrintMsgType != WHISPER){
 					tmp = text;
 					tmpnickname = CConfig::GetInstance()->Nickname;
-					if(tmp.Search(tmpnickname) < 2){
+					if(tmp.Search(tmpnickname, 0) < 2){
 						PrintTimedScreen->SetFont(FDefault);
 						PrintTimedScreen->PrintTimed(3700, 2800, (*Lang)[CLanguage::WHISPERSTOYOU], 3000.0f, 0);
 						PrintTimedScreen->PrintTimed(3700, 3000, tmp, 3000.0f, 0);
 						if(!ShowHow){
-							zCView::GetScreen()->GetPrintScreen()->PrintTimed(3700, 3200, (*Lang)[CLanguage::PRESSFORWHISPER], 3000.0f, 0);
+							PrintTimedScreen->PrintTimed(3700, 3200, (*Lang)[CLanguage::PRESSFORWHISPER], 3000.0f, 0);
 							ShowHow = true;
 						}
 					}
@@ -156,7 +160,7 @@ void CChat::WriteMessage(MsgType type, bool PrintTimed, const char * format, ...
 				if(PrintMsgType != WHISPER){
 					tmp = text;
 					tmpnickname = CConfig::GetInstance()->Nickname;
-					if(tmp.Search(tmpnickname) < 2){
+					if(tmp.Search(tmpnickname, 0) < 2){
 						PrintTimedScreen->SetFont(FDefault);
 						PrintTimedScreen->PrintTimed(3700, 2800, (*Lang)[CLanguage::WHISPERSTOYOU], 3000.0f, 0);
 						PrintTimedScreen->PrintTimed(3700, 3000, tmp, 3000.0f, 0);
@@ -188,7 +192,7 @@ void CChat::ClearChat()
 };
 
 void CChat::PrintChat(){
-	zCView::GetScreen()->SetFont(FDefault);
+	Screen->SetFont(FDefault);
 	if(Input->KeyToggled(KEY_F5) && PrintMsgType != NORMAL) PrintMsgType = NORMAL;
 	if(Input->KeyToggled(KEY_F6) && PrintMsgType != WHISPER) PrintMsgType = WHISPER;
 	if(Input->KeyToggled(KEY_F7) && PrintMsgType != ADMIN) PrintMsgType = ADMIN;
@@ -196,25 +200,25 @@ void CChat::PrintChat(){
 		case NORMAL:
 			if(ChatMessages.size()>CConfig::GetInstance()->ChatLines) ChatMessages.erase(ChatMessages.begin());
 			if((int)ChatMessages.size()>0)for(int v=0; v<(int)ChatMessages.size(); v++) {
-				zCView::GetScreen()->SetFontColor(ChatMessages[v].MsgColor);
-				zCView::GetScreen()->Print(0, v*200, ChatMessages[v].Message);
-				zCView::GetScreen()->SetFontColor(Normal);
+				Screen->SetFontColor(ChatMessages[v].MsgColor);
+				Screen->Print(0, v*200, ChatMessages[v].Message);
+				Screen->SetFontColor(Normal);
 			}
 		break;
 		case WHISPER:
 			if(WhisperMessages.size()>CConfig::GetInstance()->ChatLines+1) WhisperMessages.erase(WhisperMessages.begin()+1);
 			if((int)WhisperMessages.size()>0)for(int v=0; v<(int)WhisperMessages.size(); v++) {
-				zCView::GetScreen()->SetFontColor(WhisperMessages[v].MsgColor);
-				zCView::GetScreen()->Print(0, v*200, WhisperMessages[v].Message);
-				zCView::GetScreen()->SetFontColor(Normal);
+				Screen->SetFontColor(WhisperMessages[v].MsgColor);
+				Screen->Print(0, v*200, WhisperMessages[v].Message);
+				Screen->SetFontColor(Normal);
 			}
 		break;
 		case ADMIN:
 			if(AdminMessages.size()>CConfig::GetInstance()->ChatLines) AdminMessages.erase(AdminMessages.begin());
 			if((int)AdminMessages.size()>0)for(int v=0; v<(int)AdminMessages.size(); v++) {
-				zCView::GetScreen()->SetFontColor(AdminMessages[v].MsgColor);
-				zCView::GetScreen()->Print(0, v*200, AdminMessages[v].Message);
-				zCView::GetScreen()->SetFontColor(Normal);
+				Screen->SetFontColor(AdminMessages[v].MsgColor);
+				Screen->Print(0, v*200, AdminMessages[v].Message);
+				Screen->SetFontColor(Normal);
 			}
 		break;
 	};

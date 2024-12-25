@@ -27,6 +27,8 @@ SOFTWARE.
 #include "CLanguage.h"
 #include <fstream>
 
+using namespace Gothic_II_Addon;
+
 using namespace std;
 
 zSTRING Empty = "EMPTY";

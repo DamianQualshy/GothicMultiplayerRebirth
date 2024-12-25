@@ -37,6 +37,10 @@ SOFTWARE.
 #include "../game_client.h"
 #include "packets.h"
 
+using namespace Gothic_II_Addon;
+
+oCGame* Game;
+
 extern zCOLOR RED;
 namespace Game {
 void OnMapName(GameClient* client, Packet p) {
@@ -44,7 +48,7 @@ void OnMapName(GameClient* client, Packet p) {
   using InputAdapter = bitsery::InputBufferAdapter<unsigned char*>;
   auto state = bitsery::quickDeserialization<InputAdapter>({p.data, p.length}, packet);
 
-  std::string currentMap = oCGame::GetGame()->GetGameWorld()->GetWorldName().ToChar();
+  std::string currentMap = Game->GetGameWorld()->GetWorldName().ToChar();
 
   if (packet.map_name != currentMap) {
     client->map = packet.map_name.c_str();
@@ -116,12 +120,12 @@ void OnActualStatistics(GameClient* client, Packet p) {
       }
     } else if (packet.state.left_hand_item_instance > 5892 && packet.state.left_hand_item_instance < 7850) {
       if (!player->npc->GetLeftHand()) {
-        oCItem* New = oCObjectFactory::GetFactory()->CreateItem(static_cast<int>(packet.state.left_hand_item_instance));
+        oCItem* New = zfactory->CreateItem(static_cast<int>(packet.state.left_hand_item_instance));
         player->npc->SetLeftHand(New);
         client->CheckForSpecialEffects(player->npc->GetLeftHand(), player->npc);
       } else {
         if (player->npc->GetLeftHand()->GetInstance() != static_cast<int>(packet.state.left_hand_item_instance)) {
-          oCItem* New = oCObjectFactory::GetFactory()->CreateItem(static_cast<int>(packet.state.left_hand_item_instance));
+          oCItem* New = zfactory->CreateItem(static_cast<int>(packet.state.left_hand_item_instance));
           oCItem* Old = player->npc->GetLeftHand();
           player->npc->SetLeftHand(New);
           Old->RemoveVobFromWorld();

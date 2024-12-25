@@ -37,6 +37,8 @@ SOFTWARE.
 #include "CSyncFuncs.h"
 #include "CIngame.h"
 
+using namespace Gothic_II_Addon;
+
 // Externs
 extern CIngame* global_ingame;
 

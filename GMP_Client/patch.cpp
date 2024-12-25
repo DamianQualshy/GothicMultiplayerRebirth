@@ -31,6 +31,7 @@ SOFTWARE.
 #include <ZenGin/zGothicAPI.h>
 #include "common.h"
 
+
 void Patch::NoStartupLogo() {
   BYTE buffer[] = {0xC2, 0x04, 0x00, 0x90, 0x90};
   WriteMemory(0x426660, buffer, 5);

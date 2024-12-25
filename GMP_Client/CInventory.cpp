@@ -37,18 +37,22 @@ SOFTWARE.
 #include "keyboard.h"
 #include "CLanguage.h"
 
+using namespace Gothic_II_Addon;
+
 extern CLanguage* Lang;
 extern zCOLOR Normal;
 char q[2]={0, 0};
+
+oCObjectFactory* factory;
 
 CInventory::CInventory(oCNpcInventory* HeroInventory)
 {
 	DropInvoked = false;
 	Inv = HeroInventory;
 	Owner = HeroInventory->GetOwner();
-	Input = zCInput::GetInput();
+	zCInput* Input;
 	InvWindow = HeroInventory->GetInventoryWindow();
-	Screen = zCView::GetScreen();
+	zCView* Screen;
 };
 
 CInventory::~CInventory()
@@ -64,14 +68,14 @@ void CInventory::DropAmount(oCItem* Item, int amount)
 {
 	if(!Item) return;
 	if(amount < 1) return;
-	if(amount > Item->GetAmount()) return;
-	if(amount == Item->GetAmount()){
+	if(amount > Item->amount) return;
+	if(amount == Item->amount){
 		Owner->DoDropVob(Item);
 		return;
 	}
-	int AmountDec = Item->GetAmount() - amount;
-	oCItem* ToDrop = oCObjectFactory::GetFactory()->CreateItem(Item->GetInstance());
-	ToDrop->SetAmount(amount);
+	int AmountDec = Item->amount - amount;
+	oCItem* ToDrop = factory->CreateItem(Item->GetInstance());
+	ToDrop->amount = amount;
 	Owner->DoDropVob(ToDrop);
 };
 
@@ -88,7 +92,7 @@ void CInventory::InvokeAmountDrop()
 	if(IsEmpty()) return;
 	oCItem* SelectedItem = GetSelectedItem();
 	if(!SelectedItem) return;
-	if(SelectedItem->GetAmount() < 2) return;
+	if(SelectedItem->amount < 2) return;
 	DropInvoked = true;
 };
 

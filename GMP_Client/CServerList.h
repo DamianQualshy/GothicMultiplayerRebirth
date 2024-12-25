@@ -30,6 +30,8 @@ SOFTWARE.
 
 using namespace std;
 
+using namespace Gothic_II_Addon;
+
 struct SServerInfo{
 	zSTRING name, ip, map, server_website;
 	unsigned short num_of_players, max_players, hour, minute, port;

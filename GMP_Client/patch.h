@@ -25,6 +25,7 @@ SOFTWARE.
 
 #pragma once
 #include "common.h"
+#include <InjectMage.h>
 
 namespace Patch
 {	

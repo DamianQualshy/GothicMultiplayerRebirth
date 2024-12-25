@@ -38,6 +38,7 @@ SOFTWARE.
 #include "Button.h"
 #include <ZenGin/zGothicAPI.h>
 using namespace G2W;
+using namespace Gothic_II_Addon;
 
 Button::Button(int x, int y, int width, int height){
 	this->x = x;

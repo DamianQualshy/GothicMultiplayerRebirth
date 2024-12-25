@@ -44,6 +44,8 @@ zSTRING Arrow = "-->";
 extern std::vector<CMenu*> MenuList;
 //**
 
+using namespace Gothic_II_Addon;
+
 CMenu::CMenu(zSTRING MenuTitle, zCOLOR TitleTextColor, int sizex, int sizey) // Menu Constructor
 {
 	MainWindow = new zCView(0,0,8192,8192,VIEW_ITEM);
@@ -63,10 +65,11 @@ CMenu::CMenu(zSTRING MenuTitle, zCOLOR TitleTextColor, int sizex, int sizey) // 
 	time = clock() + 400;
 	Counting = true;
 	ArrowPos = 1;
-	if(oCNpcInventory::IsHeroInventoryOpened()) oCNpc::GetHero()->GetInventory()->Close();
+        if (oCNpc::player->IsInventoryOpened())
+          oCNpc::player->CloseInventory();
 	Patch::PlayerInterfaceEnabled(false);
-	oCNpc::GetHero()->SetMovLock(1);
-	oCNpc::GetHero()->GetAnictrl()->StopTurnAnis();
+	oCNpc::player->SetMovLock(1);
+	oCNpc::player->GetAnictrl()->StopTurnAnis();
 	ArrowsInit();
 	MenuList.push_back(this);
 };
@@ -74,8 +77,8 @@ CMenu::CMenu(zSTRING MenuTitle, zCOLOR TitleTextColor, int sizex, int sizey) // 
 CMenu::~CMenu()
 {
 	MainWindow->Close();
-	zCView::GetScreen()->RemoveItem(TitleText);
-	zCView::GetScreen()->RemoveItem(Arrows);
+	screen->RemoveItem(TitleText);
+	screen->RemoveItem(Arrows);
 	delete MainWindow;
 	delete Arrows;
 	delete TitleText;
@@ -113,10 +116,10 @@ void CMenu::Open()
 			if(MenuList[i]->IsOpened()) MenuList[i]->Close();
 		}
 	}
-	if(oCNpcInventory::IsHeroInventoryOpened()) oCNpc::GetHero()->GetInventory()->Close();
+	if(oCNpc::player->IsInventoryOpened()) oCNpc::player->CloseInventory();
 	Patch::SetOpenInventoryEnabled(false);
 	Patch::SetStatusScreenEnabled(false);
-	oCNpc::GetHero()->GetAnictrl()->StopTurnAnis();
+	oCNpc::player->GetAnictrl()->StopTurnAnis();
 	MainWindow->Open();
 	for (int i = 0; i < (int)MenuItems.size(); i++)
 	{
@@ -131,12 +134,12 @@ void CMenu::Open()
 void CMenu::Close()
 {
 	if(!Counting){
-	oCNpc::GetHero()->SetMovLock(0);
+	oCNpc::player->SetMovLock(0);
 	Patch::SetOpenInventoryEnabled(true);
 	Patch::SetStatusScreenEnabled(true);
 	MainWindow->Close();
-	zCView::GetScreen()->RemoveItem(TitleText);
-	zCView::GetScreen()->RemoveItem(Arrows);
+	screen->RemoveItem(TitleText);
+	screen->RemoveItem(Arrows);
 	Opened = false;
 	WasClosed = true;
 	}
@@ -168,7 +171,7 @@ void CMenu::ArrowsInit()
 void CMenu::RenderArrows()
 {
 	if(Arrows){
-	zCView::GetScreen()->RemoveItem(Arrows);
+	screen->RemoveItem(Arrows);
 	delete Arrows;
 	Arrows = NULL;}
 	Arrows = new zCView(0,0,8192,8192,VIEW_ITEM);
@@ -177,13 +180,13 @@ void CMenu::RenderArrows()
 	Arrows->SetFontColor(zCOLOR(128,0,0));
 	Arrows->SetFont(GlobalFont);
 	Arrows->Print(500, ArrowPos * 600, Arrow);
-	zCView::GetScreen()->InsertItem(Arrows);
+	screen->InsertItem(Arrows);
 };
 
 void CMenu::RenderMenu()
 {
-	if(!oCNpc::GetHero()->IsMovLock()) oCNpc::GetHero()->SetMovLock(1);
-	oCNpc::GetHero()->GetAnictrl()->StopTurnAnis();
+	if(!oCNpc::player->IsMovLock()) oCNpc::player->SetMovLock(1);
+	oCNpc::player->GetAnictrl()->StopTurnAnis();
 	if(!WasClosed){
 	if(ValuePrint.size() > 0){
 		for (int i = 0; i < (int)ValuePrint.size(); i++)
@@ -191,32 +194,32 @@ void CMenu::RenderMenu()
 			DWORD function = ValuePrint[i];
 			__asm call function;
 		}
-	}
-	if(zCInput::GetInput()->KeyToggled( KEY_UP )){
+	} 
+	if(zinput->KeyToggled( KEY_UP )){
 		ArrowPos--;
 		if(ArrowPos < 1) ArrowPos = (int)MenuItems.size();
 		RenderArrows();
 	}
-	if(zCInput::GetInput()->KeyToggled( KEY_DOWN )){
+    if (zinput->KeyToggled(KEY_DOWN)) {
 		ArrowPos++;
 		if(ArrowPos > (int)MenuItems.size()) ArrowPos = 1;
 		RenderArrows();
 	}
-	if(zCInput::GetInput()->KeyPressed( KEY_LEFT )){
+    if (zinput->KeyPressed(KEY_LEFT)) {
 		MenuItem item = (MenuItem)MenuItems[ArrowPos-1];
 		if(item.Function2 != NULL){
 			DWORD function = (DWORD)item.Function2;
 			__asm call function;
 		}
 	}
-	if(zCInput::GetInput()->KeyPressed( KEY_RIGHT )){
+    if (zinput->KeyPressed(KEY_RIGHT)) {
 		MenuItem item = (MenuItem)MenuItems[ArrowPos-1];
 		if(item.Function2 != NULL){
 			DWORD function = (DWORD)item.Function;
 			__asm call function;
 		}
 	}
-	if(zCInput::GetInput()->KeyPressed(KEY_RETURN))
+    if (zinput->KeyPressed(KEY_RETURN))
 	{
 		MenuItem item = (MenuItem)MenuItems[ArrowPos-1];
 		if(item.Function2 == NULL){
@@ -234,8 +237,8 @@ void CMenu::RenderMenu()
 		}
 		if(clock() > time){
 			if(Opened){
-			zCView::GetScreen()->InsertItem(TitleText);
-			zCView::GetScreen()->InsertItem(Arrows);}
+			screen->InsertItem(TitleText);
+			screen->InsertItem(Arrows);}
 			WasClosed = false;
 			Counting = false;
 		}

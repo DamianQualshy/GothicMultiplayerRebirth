@@ -36,6 +36,10 @@ SOFTWARE.
 #include <time.h>
 #include "CWatch.h"
 
+using namespace Gothic_II_Addon;
+
+oCGame* Game;
+
 extern zSTRING FDefault;
 extern zCOLOR Normal;
 extern CLanguage* Lang;
@@ -43,7 +47,7 @@ CWatch::CWatch()
 {
 	Langs = Lang;
 	Con = CConfig::GetInstance();
-	Screen = zCView::GetScreen();
+	Screen = screen;
 };
 
 void CWatch::PrintWatch()
@@ -56,7 +60,7 @@ void CWatch::PrintWatch()
 	Screen->Print( Con->WatchPosX, Con->WatchPosY, (*Langs)[CLanguage::CWATCH_REALTIME]);
 	Screen->Print(Con->WatchPosX, Con->WatchPosY+200, tmp);
 	Screen->Print(Con->WatchPosX, Con->WatchPosY+400, (*Langs)[CLanguage::CWATCH_GAMETIME]);
-	oCGame::GetGame()->GetWorldTimer()->GetTime(H,M);
+	Game->GetWorldTimer()->GetTime(H,M);
 	sprintf(TimePrint, "%d:%.2d", H,M);
 	tmp = TimePrint;
 	Screen->Print(Con->WatchPosX, Con->WatchPosY+600, tmp);

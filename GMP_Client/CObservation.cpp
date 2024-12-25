@@ -39,6 +39,8 @@ SOFTWARE.
 #include "game_client.h"
 #include "CIngame.h"
 
+using namespace Gothic_II_Addon;
+
 // Externs
 extern GameClient* client;
 extern CIngame* global_ingame;
@@ -72,8 +74,8 @@ void CObservation::Loop()
 		if(client->player.size() > 1) ObserveForward();
 		else LocalPlayer->LeaveObserveMode();
 	}
-	zCInput* Input = zCInput::GetInput();
-	zCView* Screen = zCView::GetScreen();
+	zCInput* Input = zinput;
+	zCView* Screen = screen;
 	if(Input->KeyToggled(KEY_LEFT)) ObserveBackward();
 	if(Input->KeyToggled(KEY_RIGHT)) ObserveForward();
 	char buffer[128];

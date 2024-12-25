@@ -39,11 +39,13 @@ bool DevNoUpdate = true;
 
 #pragma comment(lib, "urlmon.lib")
 
+using namespace Gothic_II_Addon;
+
 CUpdate::CUpdate() // Constructor
 {
 	RequiresMasterUpdate = false;
 	if(DevNoUpdate) return;
-	Screen = zCView::GetScreen();
+	Screen = screen;
 	Screen->PrintCXY(CheckingUpdate);
 	if(URLDownloadToFile(NULL, "yoursite.com", ".\\Update.gmp", 0, NULL)==S_OK){
 		FILE* fH = fopen(".\\Update.gmp", "rb");
@@ -100,7 +102,7 @@ CUpdate::~CUpdate() // Destructor
 
 void CUpdate::DownloadUpdate()
 {
-	zCView::GetScreen()->PrintCXY(DownloadingUpdate);
+	screen->PrintCXY(DownloadingUpdate);
 	if(URLDownloadToFile(NULL, "yoursite-invalid------------.com/GMP.dll", ".\\System\\GMPNew.dll", 0, NULL)==S_OK){
 		if(!CreateProc(".\\System\\Update.exe")){
 			remove(".\\System\\GMPNew.dll");

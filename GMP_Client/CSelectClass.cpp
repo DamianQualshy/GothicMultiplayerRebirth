@@ -30,6 +30,8 @@ SOFTWARE.
 #include "CLocalPlayer.h"
 #include "Interface.h"
 
+using namespace Gothic_II_Addon;
+
 extern float fWRatio;
 CSelectClass *selectmgr=NULL;
 extern CLocalPlayer* LocalPlayer;
@@ -38,7 +40,7 @@ CSelectClass::CSelectClass(CLanguage *ptr, GameClient*cl){
 	// INITIALIZING LOCAL PLAYER HERE INSTEAD IN JOINGAME
 	if(!LocalPlayer){
 		new CLocalPlayer();
-		LocalPlayer->SetNpc(oCNpc::GetHero());
+		LocalPlayer->SetNpc(oCNpc::player);
 	}
 	this->lang=ptr;
 	this->client=cl;
@@ -63,9 +65,9 @@ size_t CSelectClass::GetSelected(){ return this->selected; }
 
 void CSelectClass::Loop(){
 	if(selectmgr){
-		zCView *scr=zCView::GetScreen();
-		scr->SetFont(zCFontMan::GetFontManager()->GetFont(0));
-		oCNpc::GetHero()->SetMovLock(1);
+		zCView *scr=screen;
+                scr->SetFont(zfontman->GetFont(0));
+		oCNpc::player->SetMovLock(1);
 		scr->Print(0, 0, (*selectmgr->lang)[CLanguage::SELECT_CONTROLS]);
 		scr->Print(0, 150, (*selectmgr->lang)[CLanguage::CLASS_NAME]);
 		scr->Print(0, 300, (*selectmgr->lang)[CLanguage::CLASS_DESCRIPTION]);
@@ -80,7 +82,7 @@ void CSelectClass::Loop(){
 
 void CSelectClass::CleanUpBeforeNext()
 {
-	oCNpc* Hero = oCNpc::GetHero();
+	oCNpc* Hero = oCNpc::player;
 	Hero->SetWeaponMode(NPC_WEAPON_NONE);
 	if(Hero->GetRightHand()){
 		zCVob* Ptr = Hero->GetRightHand();
@@ -108,7 +110,7 @@ void CSelectClass::ChangeSpawnPointByClass()
 	for(z=team_list.begin(); z!=team_list.end(); z++){
 		if(!memcmp((*z), (*client->classmgr)[this->selected]->team_name.ToChar(), strlen((*z))+1)){
 			zVEC3 Pos = (*(*client->spawnpoint)[(rand()%(client->spawnpoint->GetSize()/team_list.size()))*team_list.size()+who_am_i]);
-			oCNpc::GetHero()->SetPosition(Pos.x, Pos.y, Pos.z);
+			oCNpc::player->SetPosition(Pos.x, Pos.y, Pos.z);
 		} else who_am_i++;
 	}
 	team_list.clear();
@@ -119,7 +121,7 @@ void CSelectClass::HandleInput(){
 		zCAICamera::GetCurrent()->SetCameraAngle(180.0f);
 		CameraPrepared = true;
 	}
-	zCInput *input=zCInput::GetInput();
+	zCInput *input=zinput;
 	if(input->KeyToggled(KEY_ESCAPE)) {
         client->JoinGame(selected);
         ExitToBigMainMenu();
@@ -138,7 +140,7 @@ void CSelectClass::HandleInput(){
 	}
 	if(input->KeyPressed(KEY_RETURN)){
 		input->ClearKeyBuffer();
-		oCNpc::GetHero()->ResetPos(oCNpc::GetHero()->GetPosition());
+		oCNpc::player->ResetPos(oCNpc::player->GetPosition());
 		client->JoinGame(this->selected);
 		//doda� przej�cie do zarz�dzania gameplayem
 		delete this;

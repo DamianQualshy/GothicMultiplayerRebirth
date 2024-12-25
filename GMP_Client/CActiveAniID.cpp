@@ -26,6 +26,8 @@ SOFTWARE.
 #include "CActiveAniID.h"
 #include <ZenGin/zGothicAPI.h>
 
+using namespace Gothic_II_Addon;
+
 CActiveAniID *pActiveAniID=NULL;
 
 CActiveAniID *CActiveAniID::GetInstance(){ return pActiveAniID; }
@@ -39,7 +41,7 @@ void CActiveAniID::ValidateStack(){
 	if(this->animation_stack.size()>100) for(int i=0; i<100; i++) this->animation_stack.pop();
 func_validate_ani_start:
 	if(!this->animation_stack.empty())
-		if(!oCNpc::GetHero()->GetModel()->IsAnimationActive(oCNpc::GetHero()->GetModel()->GetAniFromAniID(this->animation_stack.top())->GetAniName())){
+		if(!oCNpc::player->GetModel()->IsAnimationActive(oCNpc::player->GetModel()->GetAniFromAniID(this->animation_stack.top())->GetAniName())){
 			this->animation_stack.pop();
 			goto func_validate_ani_start;
 		}

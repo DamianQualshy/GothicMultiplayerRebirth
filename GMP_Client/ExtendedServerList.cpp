@@ -38,6 +38,8 @@ SOFTWARE.
 using namespace std;
 using namespace G2W;
 
+using namespace Gothic_II_Addon;
+
 extern CLanguage* Lang;
 
 ExtendedServerList::ExtendedServerList()
@@ -77,7 +79,7 @@ ExtendedServerList::ExtendedServerList()
 	list_fav->setFont(FNT_WHITE_10);
 
 	SelectedTab = TAB_ALL;
-	input = zCInput::GetInput();
+	input = zinput;
 	SelectedServer = 0;
 	srvList_access = CreateMutex(NULL, FALSE, NULL);    
 

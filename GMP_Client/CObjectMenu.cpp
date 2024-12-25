@@ -26,6 +26,8 @@ SOFTWARE.
 #include "CObjectMenu.h"
 #include "WorldBuilder\CBuilder.h"
 
+using namespace Gothic_II_Addon;
+
 extern zCOLOR Highlighted;
 extern zCOLOR Normal;
 extern zCOLOR FColors;
@@ -44,14 +46,14 @@ CObjectMenu::CObjectMenu()
 CObjectMenu::~CObjectMenu()
 {
 	MenuPos = 0, PrintFrom = 0, PrintTo = 0;
-	zCView::GetScreen()->SetFontColor(Normal);
+	screen->SetFontColor(Normal);
 };
 
 void CObjectMenu::Draw()
 {
-	if(!oCNpc::GetHero()->IsMovLock()) oCNpc::GetHero()->SetMovLock(1);
+	if(!oCNpc::player->IsMovLock()) oCNpc::player->SetMovLock(1);
 	// INPUT
-	zCInput* input = zCInput::GetInput();
+	zCInput* input = zinput;
 	if(input->KeyToggled(KEY_DELETE)){
 		Builder->SpawnedVobs[MenuPos].Vob->RemoveVobFromWorld();
 		Builder->SpawnedVobs.erase(Builder->SpawnedVobs.begin()+MenuPos);
@@ -109,7 +111,7 @@ void CObjectMenu::Draw()
 		}
 	}
 	// PRINT
-	zCView* Screen = zCView::GetScreen();
+	zCView* Screen = screen;
 	Screen->SetFontColor(Normal);
 	sprintf(buffer, "Spawned Objects (%d)", Builder->SpawnedVobs.size());
 	MenuTitle = buffer;
@@ -132,6 +134,6 @@ void CObjectMenu::Draw()
 		Screen->Print(5000, Size, TEMPSTRING);
 		Size += 200;
 	}
-	zCView::GetScreen()->SetFontColor(Normal);
+	screen->SetFontColor(Normal);
 	if(Builder->SpawnedVobs[MenuPos].Type != TYPE_PARTICLE && Rotating) Builder->SpawnedVobs[MenuPos].Vob->RotateWorldY(0.5f);
 };

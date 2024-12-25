@@ -38,6 +38,8 @@ SOFTWARE.
 #include "..\HooksManager.h"
 //
 
+using namespace Gothic_II_Addon;
+
 // Global
 using namespace std;
 #define PI 3.14159265
@@ -62,34 +64,35 @@ void RenderEvent()
 		ObjMenu = NULL;
 		FillMobNames();
 		FillParticleNames();
-		Game = oCGame::GetGame();
-		screen = zCView::GetScreen();
-		Hero = oCNpc::GetHero();
-		keyboard = zCInput::GetInput();
+		oCGame* Game;
+        zCView* screen;
+        oCNpc* Hero;
+        zCInput* keyboard;
+        zCAICamera* Cam;
 		SMode = MOBS;
 		CurrentMobType = MOB_NORMAL;
 		CreateModeBoxes();
 		DeleteAllNpcs();
 		DirectionAngle = 90;
 		DisableAllItemsInWorld();
-		CurrentInter = oCMobInter::_CreateNewInstance();
+		CurrentInter->oCMobInter::_CreateNewInstance();
 		VisualName = MobNames[0];
 		activeparticlename = 0, activemobname = 0, MoveSpeed = 1;
 		LoadAllVobsFromTheWorld();
 		TargetVisual = zCVisual::LoadVisual(MobNames[0]);
-		CurrentInter->SetVisualInter(TargetVisual);
-		Hero->SetPosition(0,0,0);
+		CurrentInter->SetVisual(TargetVisual);
+		Hero->SetPositionWorld(0);
 		Hero->SetMovLock(1);
 		Game->GetWorld()->AddVob(CurrentInter);
-		cam = zCAICamera::GetCurrent();
-		cam->SetTarget(CurrentInter);
-		oCNpc::SetGodMode(1);
-		zCAICamera::SetLookingOnNpcCamera(true);
-		oCGame::GetGame()->GetWorld()->SetVobFarClipZ(30000);
-		oCGame::GetGame()->GetWorld()->GetOutdoorSkyController()->SetFarZScalability(3);
-		CamDistHuman = cam->GetDistance();
-		cam->SetMaxRange(30.0f);
-		cam->SetDistance(7.0f);
+		//cam = zCAICamera::GetCurrent();
+		Cam->SetTarget(CurrentInter);
+		oCNpc::godmode = 1;
+		//zCAICamera::SetLookingOnNpcCamera(true);
+        Game->GetWorld()->SetVobFarClipZScalability(30000);
+        Game->GetWorld()->GetActiveSkyControler()->SetFarZScalability(3);
+        CamDistHuman = Cam->GetDistance();
+        Cam->maxRange = 30.0f;
+		//cam->SetDistance(7.0f);
 		MobCollision = true;
 		Patch::PlayerInterfaceEnabled(false);
 		BuildMessages.push_back(zSTRING("World Builder 0.7 Alpha By Skejt23"));
@@ -99,10 +102,10 @@ void RenderEvent()
 
 	CBuilder::~CBuilder()
 	{
-		oCNpc::SetGodMode(0);
+		oCNpc::godmode = 0;
 		ClearUpBoxes();
 		zCAICamera::SetLookingOnNpcCamera(false);
-		cam->SetTarget(oCNpc::GetHero());
+		cam->SetTarget(oCNpc::player);
 		CurrentInter->RemoveVobFromWorld();
 		for(int i = 0; i < (int)SpawnedVobs.size(); i++)
 		{
@@ -603,34 +606,34 @@ void RenderEvent()
 
 	void CBuilder::SaveVobMatrix(zCVob* Vob, zMAT4& Matrix)
 	{
-		Matrix.m[0][0] = Vob->trafoObjToWorld.m[0][0];
-		Matrix.m[1][0] = Vob->trafoObjToWorld.m[1][0];
-		Matrix.m[2][0] = Vob->trafoObjToWorld.m[2][0];
-		Matrix.m[0][2] = Vob->trafoObjToWorld.m[0][2];
-		Matrix.m[1][2] = Vob->trafoObjToWorld.m[1][2];
-		Matrix.m[2][2] = Vob->trafoObjToWorld.m[2][2];
-		Matrix.m[0][1] = Vob->trafoObjToWorld.m[0][1];
-		Matrix.m[1][1] = Vob->trafoObjToWorld.m[1][1];
-		Matrix.m[2][1] = Vob->trafoObjToWorld.m[2][1];
+		Matrix.v[0][0] = Vob->trafoObjToWorld.v[0][0];
+		Matrix.v[1][0] = Vob->trafoObjToWorld.v[1][0];
+		Matrix.v[2][0] = Vob->trafoObjToWorld.v[2][0];
+		Matrix.v[0][2] = Vob->trafoObjToWorld.v[0][2];
+		Matrix.v[1][2] = Vob->trafoObjToWorld.v[1][2];
+		Matrix.v[2][2] = Vob->trafoObjToWorld.v[2][2];
+		Matrix.v[0][1] = Vob->trafoObjToWorld.v[0][1];
+		Matrix.v[1][1] = Vob->trafoObjToWorld.v[1][1];
+		Matrix.v[2][1] = Vob->trafoObjToWorld.v[2][1];
 	};
 
 	void CBuilder::RestoreVobMatrix(zCVob* Vob, zMAT4& Matrix)
 	{
-		Vob->trafoObjToWorld.m[0][0] = Matrix.m[0][0];
-		Vob->trafoObjToWorld.m[1][0] = Matrix.m[1][0];
-		Vob->trafoObjToWorld.m[2][0] = Matrix.m[2][0];
-		Vob->trafoObjToWorld.m[0][2] = Matrix.m[0][2];
-		Vob->trafoObjToWorld.m[1][2] = Matrix.m[1][2];
-		Vob->trafoObjToWorld.m[2][2] = Matrix.m[2][2];
-		Vob->trafoObjToWorld.m[0][1] = Matrix.m[0][1];
-		Vob->trafoObjToWorld.m[1][1] = Matrix.m[1][1];
-		Vob->trafoObjToWorld.m[2][1] = Matrix.m[2][1];
+		Vob->trafoObjToWorld.v[0][0] = Matrix.v[0][0];
+		Vob->trafoObjToWorld.v[1][0] = Matrix.v[1][0];
+		Vob->trafoObjToWorld.v[2][0] = Matrix.v[2][0];
+		Vob->trafoObjToWorld.v[0][2] = Matrix.v[0][2];
+		Vob->trafoObjToWorld.v[1][2] = Matrix.v[1][2];
+		Vob->trafoObjToWorld.v[2][2] = Matrix.v[2][2];
+		Vob->trafoObjToWorld.v[0][1] = Matrix.v[0][1];
+		Vob->trafoObjToWorld.v[1][1] = Matrix.v[1][1];
+		Vob->trafoObjToWorld.v[2][1] = Matrix.v[2][1];
 	};
 
 	// Load all vobs from the world to vector
 	void CBuilder::LoadAllVobsFromTheWorld()
 	{
-		zCListSort<zCVob>* VobList = oCGame::GetGame()->GetWorld()->GetVobList();
+		zCListSort<zCVob>* VobList = Game->GetWorld()->GetVobList();
 		int size = VobList->GetSize();
 		for(int i=0; i<size; i++){
 			VobList = VobList->GetNext();
@@ -686,7 +689,7 @@ void RenderEvent()
 	// Disabling all items in current world
 	void CBuilder::DisableAllItemsInWorld()
 	{
-		zCListSort<oCItem>* ItemList = oCGame::GetGame()->GetWorld()->GetItemList();
+		zCListSort<oCItem>* ItemList = Game->GetWorld()->GetItemList();
 		int size = ItemList->GetSize();
 		oCWorld* World = Game->GetGameWorld();
 		for(int i=0; i<size; i++){

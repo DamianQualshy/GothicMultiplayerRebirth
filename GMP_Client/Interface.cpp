@@ -43,6 +43,8 @@ SOFTWARE.
 #include "CIngame.h"
 #include "WorldBuilder\CBuilder.h"
 #include "CLocalPlayer.h"
+
+using namespace Gothic_II_Addon;
 bool HelpOpen = false;
 CMenu* MainMenu;
 std::vector<CMenu*> MenuList;
@@ -78,8 +80,8 @@ void ExitMainMenu()
 
 void ExitToBigMainMenu()
 {
-	oCNpc::GetHero()->ResetPos(oCNpc::GetHero()->GetPosition());
-	oCNpc::GetHero()->RefreshNpc();
+	oCNpc::player->ResetPos(oCNpc::player->GetPosition());
+	oCNpc::player->RefreshNpc();
 	MainMenu = NULL;
 	client->Disconnect();
 	CMainMenu::GetInstance()->ReLaunchMainMenu();
@@ -94,7 +96,7 @@ void ExitToMainmenu()
 void ExitGameFromMainMenu()
 {
 	client->Disconnect();
-	CGameManager::GetGameManager()->Done();
+    gameMan->Done();
 }
 void CreateOptionsMenu()
 {
@@ -108,10 +110,10 @@ void CreateOptionsMenu()
 void LeaveOptionsMenu()
 {
 	OrgOptionsOpened = false;
-	zCInput::GetInput()->ClearKeyBuffer();
+	zinput->ClearKeyBuffer();
 	Options->Leave();
-	CGameManager::GetGameManager()->ApplySomeSettings();
-	oCNpc::GetHero()->SetMovLock(1);
+    gameMan->ApplySomeSettings();
+	oCNpc::player->SetMovLock(1);
 	CreateMainMenu(InWorldBuilder);
 };
 
@@ -119,7 +121,7 @@ void InterfaceLoop(void)
 {
 	if(InWorldBuilder) InWorldBuilder = false;
 	if(HelpOpen){
-		zCView* Scr = zCView::GetScreen();
+		zCView* Scr = screen;
 		Scr->Print(2500, 2000, (*Lang)[CLanguage::HCONTROLS]);
 		Scr->Print(2500, 2200, (*Lang)[CLanguage::HCHAT]);
 		Scr->Print(2500, 2400, (*Lang)[CLanguage::HCHATMAIN]);
@@ -132,9 +134,9 @@ void InterfaceLoop(void)
 		Scr->SetFontColor(Normal);
 	}
 	if(OrgOptionsOpened){
-			if(!oCNpc::GetHero()->IsMovLock()) oCNpc::GetHero()->SetMovLock(1);
-			if(memcmp("MENU_OPTIONS", zCMenu::GetActive()->GetName().ToChar(), 12)==0 && zCInput::GetInput()->KeyPressed(KEY_ESCAPE)) LeaveOptionsMenu();
-			if(memcmp("MENUITEM_OPT_BACK", Options->GetActiveItem()->GetName().ToChar(), 17)==0 && zCInput::GetInput()->KeyPressed(KEY_RETURN)) LeaveOptionsMenu();
+			if(!oCNpc::player->IsMovLock()) oCNpc::player->SetMovLock(1);
+			if(memcmp("MENU_OPTIONS", zCMenu::GetActive()->GetName().ToChar(), 12)==0 && zinput->KeyPressed(KEY_ESCAPE)) LeaveOptionsMenu();
+			if(memcmp("MENUITEM_OPT_BACK", Options->GetActiveItem()->GetName().ToChar(), 17)==0 && zinput->KeyPressed(KEY_RETURN)) LeaveOptionsMenu();
 	}
 	if(MenuList.size() > 0){
 		for (int i = 0; i < (int)MenuList.size(); i++)
@@ -145,7 +147,7 @@ void InterfaceLoop(void)
 		}
 	}
 	if(!oCNpcInventory::IsHeroInventoryOpened()){
-		if(zCInput::GetInput()->KeyToggled( KEY_ESCAPE ) && !OrgOptionsOpened){
+		if(zinput->KeyToggled( KEY_ESCAPE ) && !OrgOptionsOpened){
 				if(!MainMenu){
 					if(HelpOpen){
 						HelpOpen = false;
@@ -172,13 +174,13 @@ void InterfaceLoop(void)
 // WORLD BUILDER MENU FUNCTIONS
 void SaveMap()
 {
-	zCInput::GetInput()->ClearKeyBuffer();
+	zinput->ClearKeyBuffer();
 	WritingMapSave = true;
 }
 void ExitToBigMainMenuFromWB()
 {
-	oCNpc::GetHero()->ResetPos(oCNpc::GetHero()->GetPosition());
-	oCNpc::GetHero()->RefreshNpc();
+	oCNpc::player->ResetPos(oCNpc::player->GetPosition());
+	oCNpc::player->RefreshNpc();
 	MainMenu = NULL;
 	HooksManager::GetInstance()->RemoveHook(HT_RENDER, (DWORD)RenderEvent);
 	HooksManager::GetInstance()->RemoveHook(HT_RENDER, (DWORD)WorldBuilderInterface);
@@ -188,7 +190,7 @@ void ExitToBigMainMenuFromWB()
 }
 void ExitGameFromMainMenuWB()
 {
-	CGameManager::GetGameManager()->Done();
+	gameMan->Done();
 }
 // WORLD BUILDER HELP
 zSTRING H_CHOBJECT = "Q/E Change object";
@@ -219,14 +221,14 @@ void WorldBuilderInterface(void)
 			if(SaveWorld::SaveBuilderMap(Builder->SpawnedVobs, MapNameTxt.ToChar())) PrintTimedScreen->PrintTimedCXY(MAPSAVED, 5000.0f, 0);
 			else PrintTimedScreen->PrintTimedCXY(CANTSAVE, 5000.0f, 0);
 		}
-		zCView::GetScreen()->PrintCX(3600, WriteMapName);
-		zCView::GetScreen()->PrintCX(4000, MapNameTxt);
-		if(zCInput::GetInput()->KeyToggled(KEY_ESCAPE)){
+		screen->PrintCX(3600, WriteMapName);
+		screen->PrintCX(4000, MapNameTxt);
+		if(zinput->KeyToggled(KEY_ESCAPE)){
 			WritingMapSave = false;
 		}
 	}
 	if(HelpOpen){
-		zCView* Scr = zCView::GetScreen();
+		zCView* Scr = screen;
 		Scr->Print(2500, 2000, (*Lang)[CLanguage::HCONTROLS]);
 		Scr->Print(2500, 2200, H_CHOBJECT);
 		Scr->Print(2500, 2400, H_UPDOWN);
@@ -245,9 +247,9 @@ void WorldBuilderInterface(void)
 		Scr->Print(2500, 5000, H_INOBJMENU);
 	}
 	if(OrgOptionsOpened){
-			if(!oCNpc::GetHero()->IsMovLock()) oCNpc::GetHero()->SetMovLock(1);
-			if(memcmp("MENU_OPTIONS", zCMenu::GetActive()->GetName().ToChar(), 12)==0 && zCInput::GetInput()->KeyPressed(KEY_ESCAPE)) LeaveOptionsMenu();
-			if(memcmp("MENUITEM_OPT_BACK", Options->GetActiveItem()->GetName().ToChar(), 17)==0 && zCInput::GetInput()->KeyPressed(KEY_RETURN)) LeaveOptionsMenu();
+			if(!oCNpc::player->IsMovLock()) oCNpc::player->SetMovLock(1);
+			if(memcmp("MENU_OPTIONS", zCMenu::GetActive()->GetName().ToChar(), 12)==0 && zinput->KeyPressed(KEY_ESCAPE)) LeaveOptionsMenu();
+			if(memcmp("MENUITEM_OPT_BACK", Options->GetActiveItem()->GetName().ToChar(), 17)==0 && zinput->KeyPressed(KEY_RETURN)) LeaveOptionsMenu();
 	}
 	if(MenuList.size() > 0){
 		for (int i = 0; i < (int)MenuList.size(); i++)
@@ -258,7 +260,7 @@ void WorldBuilderInterface(void)
 		}
 	}
 	if(!oCNpcInventory::IsHeroInventoryOpened()){
-		if(zCInput::GetInput()->KeyToggled( KEY_ESCAPE ) && !OrgOptionsOpened && !WritingMapSave){
+		if(zinput->KeyToggled( KEY_ESCAPE ) && !OrgOptionsOpened && !WritingMapSave){
 				if(!MainMenu){
 					if(HelpOpen){
 						HelpOpen = false;

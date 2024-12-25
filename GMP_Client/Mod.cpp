@@ -38,6 +38,10 @@ SOFTWARE.
 #include "CIngame.h"
 #include <ctime>
 
+using namespace Gothic_II_Addon;
+
+oCGame* Game;
+
 #pragma warning(disable:4996)
 GameClient* client=NULL;
 CMainMenu* MainMenu=NULL;
@@ -128,7 +132,7 @@ void _declspec(naked) CheckDamageIfForHero()
 // NO SLEEP FIX
 DWORD RETURN_TOCSTATE = 0x00720877;
 DWORD RETURN_TOENDCSTATE = 0x00720AC1;
-oCMob* Mob;
+oCMOB* Mob;
 bool _stdcall IsSleepABit()
 {
 	if(Mob->GetStateFuncName().IsEmpty()) return false;
@@ -158,7 +162,7 @@ void _declspec(naked) CheckCallStateFunc()
 // Patch for arrows damage
 void _stdcall CheckDamageForArrows(oCNpc* Npc, int howmuch, oSDamageDescriptor& Des)
 {
-	if(Des.nSpellID > 0 && Des.nSpellID != -1 && oCNpc::GetHero() != Des.pNpcAttacker) return;
+	if(Des.nSpellID > 0 && Des.nSpellID != -1 && oCNpc::player != Des.pNpcAttacker) return;
     if(Des.pItemWeapon){
 		if(!memcmp("ITRW_ARROW", Des.pItemWeapon->GetInstanceName().ToChar(), 10) || !memcmp("ITRW_BOLT", Des.pItemWeapon->GetInstanceName().ToChar(), 9)){
 			/*BindArrow = oCObjectFactory::GetFactory()->CreateItem(Des.pItemWeapon->GetInstance());
@@ -172,8 +176,8 @@ void _stdcall CheckDamageForArrows(oCNpc* Npc, int howmuch, oSDamageDescriptor& 
 			printf("\nX : %f, Y : %f, Z : %f", Mat.m[0][3], Mat.m[1][3], Mat.m[2][3]);
 			//Npc->GetModel()->AttachChildVobToNode(BindArrow, Node);
 			//Npc->GetModel()->UpdateAttachedVobs();
-			oCNpc::GetHero()->SetPosition(BindArrow->GetPositionWorld().x, BindArrow->GetPositionWorld().y, BindArrow->GetPositionWorld().z);*/
-			if(Des.pNpcAttacker) if(oCNpc::GetHero() != Des.pNpcAttacker || oCNpc::GetHero() == Npc) return;
+			oCNpc::player->SetPosition(BindArrow->GetPositionWorld().x, BindArrow->GetPositionWorld().y, BindArrow->GetPositionWorld().z);*/
+			if(Des.pNpcAttacker) if(oCNpc::player != Des.pNpcAttacker || oCNpc::player == Npc) return;
 		}
 	}
 	Npc->ChangeAttribute(0, howmuch);
@@ -204,8 +208,8 @@ char bufferTemp[128];
 void _declspec(naked) PrintKilledMessage()
 {
 	__asm pushad
-	if(oCNpc::GetHero()->GetFocusNpc()){
-		sprintf(bufferTemp, "%s %s", (*Lang)[CLanguage::KILLEDSOMEONE_MSG].ToChar(), oCNpc::GetHero()->GetFocusNpc()->GetName().ToChar());
+	if(oCNpc::player->GetFocusNpc()){
+		sprintf(bufferTemp, "%s %s", (*Lang)[CLanguage::KILLEDSOMEONE_MSG].ToChar(), oCNpc::player->GetFocusNpc()->GetName().ToChar());
 		TestPrint = bufferTemp;
 	}
 	else{
@@ -277,7 +281,7 @@ const int DROP_ITEM_TIMEOUT = 200;
 // DROP & TAKE
 void _stdcall OnDropItem(sRegs & regs, DWORD & item)
 {	   
-	if ((DWORD)regs.ECX != (DWORD)oCNpc::GetHero()) {
+	if ((DWORD)regs.ECX != (DWORD)oCNpc::player) {
 		return;
 	}
 	oCItem* DroppedItem = (oCItem*)item;
@@ -292,7 +296,7 @@ void _stdcall OnDropItem(sRegs & regs, DWORD & item)
 
 void _stdcall OnTakeItem(sRegs & regs, DWORD & item)
 {	   
-		if((DWORD)regs.ECX == (DWORD)oCNpc::GetHero()){
+		if((DWORD)regs.ECX == (DWORD)oCNpc::player){
 				oCItem* TakenItem = (oCItem*)item;
 				if(client && global_ingame){
 					if(!client->DropItemsAllowed) return;
@@ -304,7 +308,7 @@ void _stdcall OnTakeItem(sRegs & regs, DWORD & item)
 void _stdcall OnCastSpell(sRegs & regs)
 {	  
 	oCSpell* CastedSpell = (oCSpell*)regs.ECX;
-	if((DWORD)CastedSpell->GetCaster() == (DWORD)oCNpc::GetHero()){
+	if((DWORD)CastedSpell->GetCaster() == (DWORD)oCNpc::player){
 			if(client && global_ingame){
 				if(CastedSpell->GetTarget()){
 					if(CastedSpell->GetSpellID() == 46) if(!global_ingame->Shrinker->IsShrinked(CastedSpell->GetTarget())) global_ingame->Shrinker->ShrinkNpc(CastedSpell->GetTarget());
@@ -319,7 +323,7 @@ void _stdcall OnCastSpell(sRegs & regs)
 zSTRING TakeTooFarMessage;
 bool _stdcall CheckIfDistanceIsCorrect(oCMsgManipulate* Msg, oCNpc* Npc)
 {	   
-	if(Npc == oCNpc::GetHero() && Msg){
+	if(Npc == oCNpc::player && Msg){
 		if(Msg->GetVob()){
 			if(Npc->GetDistanceToVob(Msg->GetVob()) < 240.0f){
 				return true;
@@ -363,7 +367,7 @@ void _stdcall OnTrigger(sRegs & regs, DWORD & Vob1, DWORD & Vob2)
 {	   
 	oCMobInter* TriggerMob = (oCMobInter*)regs.ECX;
 	printf("\nPOINTER : %p, TriggerName : %s", TriggerMob, TriggerMob->GetTriggerName().ToChar());
-	Vob = static_cast<zCMover*>(oCGame::GetGame()->GetGameWorld()->SearchVobByName(TriggerMob->GetTriggerName()));
+	Vob = static_cast<zCMover*>(Game->GetGameWorld()->SearchVobByName(TriggerMob->GetTriggerName()));
 	printf("\nVobPos : %f,%f,%f", Vob->GetPositionWorld().x, Vob->GetPositionWorld().y, Vob->GetPositionWorld().z);
 
 }
@@ -381,10 +385,10 @@ void _stdcall OnTrigger(sRegs & regs, DWORD & Vob1, DWORD & Vob2)
 /*zSTRING TURN = "TURN";
 void _stdcall OnStartAni(sRegs & regs, DWORD & ModelAni, int arg2)
 {	   
-	if(oCNpc::GetHero()){
-		if((DWORD)regs.ECX == (DWORD)oCNpc::GetHero()->GetModel()){
+	if(oCNpc::player){
+		if((DWORD)regs.ECX == (DWORD)oCNpc::player->GetModel()){
 			zCModelAni* Ani = (zCModelAni*)ModelAni;
-			printf("\nAniName : %s, PTR : %X, ANIACTIVE : %X, MODEL : %X", Ani->GetAniName().ToChar(), Ani, oCNpc::GetHero()->GetModel()->GetModelAniActive(), oCNpc::GetHero()->GetModel());
+			printf("\nAniName : %s, PTR : %X, ANIACTIVE : %X, MODEL : %X", Ani->GetAniName().ToChar(), Ani, oCNpc::player->GetModel()->GetModelAniActive(), oCNpc::player->GetModel());
 			//printf("\nAniId : %d", Ani->GetAniID());
 			if(Ani){
 				if(Ani->GetAniName().Search(TURN) < 2) {

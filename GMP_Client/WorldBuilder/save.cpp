@@ -25,6 +25,11 @@ SOFTWARE.
 
 #pragma warning( disable : 4996 )
 #include "save.h"
+
+using namespace Gothic_II_Addon;
+
+oCGame* Game;
+
 vector<unsigned char> wb_data;
 
 BOOL SaveWorld::FolderExists(LPCTSTR FolderName)
@@ -45,7 +50,7 @@ int SaveWorld::SaveBuilderMap(vector<Info>& Vobs, const char* MapName)
 	int size;
 	zSTRING tempz;
 	string temp;
-	temp = oCGame::GetGame()->GetWorld()->GetWorldName().ToChar();
+	temp = Game->GetGameWorld()->GetWorldName().ToChar();
 	size = temp.size();
 	wb_data.push_back(size);
 	for(int l = 0; l < size; l++) {
@@ -89,48 +94,48 @@ int SaveWorld::SaveBuilderMap(vector<Info>& Vobs, const char* MapName)
 			wb_data.push_back(fz[1]);
 			wb_data.push_back(fz[2]);
 			wb_data.push_back(fz[3]);
-			unsigned char * fr = (unsigned char*)&Vobs[i].Vob->trafoObjToWorld.m[0][0];
+			unsigned char * fr = (unsigned char*)&Vobs[i].Vob->trafoObjToWorld.v[0][0];
 			wb_data.push_back(fr[0]);
 			wb_data.push_back(fr[1]);
 			wb_data.push_back(fr[2]);
 			wb_data.push_back(fr[3]);
-			fr = (unsigned char*)&Vobs[i].Vob->trafoObjToWorld.m[1][0];
+			fr = (unsigned char*)&Vobs[i].Vob->trafoObjToWorld.v[1][0];
 			wb_data.push_back(fr[0]);
 			wb_data.push_back(fr[1]);
 			wb_data.push_back(fr[2]);
 			wb_data.push_back(fr[3]);
-			fr = (unsigned char*)&Vobs[i].Vob->trafoObjToWorld.m[2][0];
+			fr = (unsigned char*)&Vobs[i].Vob->trafoObjToWorld.v[2][0];
 			wb_data.push_back(fr[0]);
 			wb_data.push_back(fr[1]);
 			wb_data.push_back(fr[2]);
 			wb_data.push_back(fr[3]);
-			fr = (unsigned char*)&Vobs[i].Vob->trafoObjToWorld.m[0][2];
+			fr = (unsigned char*)&Vobs[i].Vob->trafoObjToWorld.v[0][2];
 			wb_data.push_back(fr[0]);
 			wb_data.push_back(fr[1]);
 			wb_data.push_back(fr[2]);
 			wb_data.push_back(fr[3]);
-			fr = (unsigned char*)&Vobs[i].Vob->trafoObjToWorld.m[1][2];
+			fr = (unsigned char*)&Vobs[i].Vob->trafoObjToWorld.v[1][2];
 			wb_data.push_back(fr[0]);
 			wb_data.push_back(fr[1]);
 			wb_data.push_back(fr[2]);
 			wb_data.push_back(fr[3]);
-			fr = (unsigned char*)&Vobs[i].Vob->trafoObjToWorld.m[2][2];
+			fr = (unsigned char*)&Vobs[i].Vob->trafoObjToWorld.v[2][2];
 			wb_data.push_back(fr[0]);
 			wb_data.push_back(fr[1]);
 			wb_data.push_back(fr[2]);
 			wb_data.push_back(fr[3]);
 			if(Vobs[i].Type != TYPE_PARTICLE){ 
-				fr = (unsigned char*)&Vobs[i].Vob->trafoObjToWorld.m[0][1];
+				fr = (unsigned char*)&Vobs[i].Vob->trafoObjToWorld.v[0][1];
 				wb_data.push_back(fr[0]);
 				wb_data.push_back(fr[1]);
 				wb_data.push_back(fr[2]);
 				wb_data.push_back(fr[3]);
-				fr = (unsigned char*)&Vobs[i].Vob->trafoObjToWorld.m[1][1];
+				fr = (unsigned char*)&Vobs[i].Vob->trafoObjToWorld.v[1][1];
 				wb_data.push_back(fr[0]);
 				wb_data.push_back(fr[1]);
 				wb_data.push_back(fr[2]);
 				wb_data.push_back(fr[3]);
-				fr = (unsigned char*)&Vobs[i].Vob->trafoObjToWorld.m[2][1];
+				fr = (unsigned char*)&Vobs[i].Vob->trafoObjToWorld.v[2][1];
 				wb_data.push_back(fr[0]);
 				wb_data.push_back(fr[1]);
 				wb_data.push_back(fr[2]);

@@ -36,6 +36,8 @@ SOFTWARE.
 #include <time.h>
 #include "CLocalPlayer.h"
 
+using namespace Gothic_II_Addon;
+
 CIngame *global_ingame=NULL;
 extern GameClient*client;
 extern CLocalPlayer* LocalPlayer;
@@ -54,21 +56,25 @@ clock_t MsgTimer = 0;
 int SpamMessages = 0;
 bool MuteCountdown = false;
 
+oCNpcInventory* Inventory;
+oCGame* Game;
+zCView* Screen;
+
 CIngame::CIngame(CLanguage *pLang){
 	this->last_player_update=clock();
 	this->lang=pLang;
 	this->chat_interface=CChat::GetInstance();
 	this->NextTimeSync=time(NULL)+1;
 	this->Shrinker = new CShrinker();
-	this->Inventory = new CInventory(oCNpc::GetHero()->GetInventory());
+    this->Inventory = new CInventory(*Inventory);
 	WritingOnChat = false;
 	IgnoreFirstSync = true;
 	SwampLightsOn = false;
 	Movement = NULL;
 	RecognizedMap = MAP_UNKNOWN;
-	if(!memcmp("OLDVALLEY.ZEN", oCGame::GetGame()->GetWorld()->GetWorldName().ToChar(), 13) || !memcmp("COLONY.ZEN", oCGame::GetGame()->GetWorld()->GetWorldName().ToChar(), 10)) RecognizedMap = MAP_COLONY;
-	if(!memcmp("OLDWORLD\\OLDWORLD.ZEN", oCGame::GetGame()->GetWorld()->GetWorldName().ToChar(), 21)) RecognizedMap = MAP_OLDWORLD;
-	if(!memcmp("NEWWORLD\\NEWWORLD.ZEN", oCGame::GetGame()->GetWorld()->GetWorldName().ToChar(), 21)) RecognizedMap = MAP_KHORINIS;
+	if(!memcmp("OLDVALLEY.ZEN", Game->GetGameWorld()->GetWorldName().ToChar(), 13) || !memcmp("COLONY.ZEN", Game->GetGameWorld()->GetWorldName().ToChar(), 10)) RecognizedMap = MAP_COLONY;
+	if(!memcmp("OLDWORLD\\OLDWORLD.ZEN", Game->GetGameWorld()->GetWorldName().ToChar(), 21)) RecognizedMap = MAP_OLDWORLD;
+	if(!memcmp("NEWWORLD\\NEWWORLD.ZEN", Game->GetGameWorld()->GetWorldName().ToChar(), 21)) RecognizedMap = MAP_KHORINIS;
 	BuffTimer = 0, SecTimer = 0, ChatTimer = 0;
 	PList = CPlayerList::GetInstance();
 	MMap = CMap::GetInstance();
@@ -98,26 +104,26 @@ CIngame::~CIngame(){
 zSTRING LIGHTSSCEMENAME = "PC";
 void CIngame::CheckSwampLights()
 {
-	oCWorldTimer* Timer = oCGame::GetGame()->GetWorldTimer();
+	oCWorldTimer* Timer = Game->GetWorldTimer();
 	if(!SwampLightsOn){
 		if(Timer->IsTimeBetween(20, 00, 05, 00)){
 			SwampLightsOn = true;
-			oCMobInter::SetAllMobsToState(oCGame::GetGame()->GetGameWorld(), LIGHTSSCEMENAME, 1);
+			oCMobInter::SetAllMobsToState(Game->GetGameWorld(), LIGHTSSCEMENAME, 1);
 			int h;
 			int m;
 			Timer->GetTime(h, m);
-			oCGame::GetGame()->SetTime(Timer->GetDay(), h, m);
+			Game->SetTime(Timer->GetDay(), h, m);
 		}
 	}
 	else{
 		if(Timer->IsTimeBetween(05, 00, 20, 00)){
 			SwampLightsOn = false;
-			oCMobInter::SetAllMobsToState(oCGame::GetGame()->GetGameWorld(), LIGHTSSCEMENAME, 0);
+			oCMobInter::SetAllMobsToState(Game->GetGameWorld(), LIGHTSSCEMENAME, 0);
 			int h;
 			int m;
 			Timer->GetTime(h, m);
-			oCGame::GetGame()->SetTime(Timer->GetDay(), h, m);
-			oCMobInter::SetAllMobsToState(oCGame::GetGame()->GetGameWorld(), LIGHTSSCEMENAME, 0);
+			Game->SetTime(Timer->GetDay(), h, m);
+			oCMobInter::SetAllMobsToState(Game->GetGameWorld(), LIGHTSSCEMENAME, 0);
 		}
 	}
 };
@@ -145,14 +151,14 @@ void CIngame::Loop(){
 			}
 		}
 		// SENDING MY ANIMATION
-		zCModelAni* AniUnusual = oCNpc::GetHero()->GetModel()->GetModelAniActive()->GetUnusualAnim(); // TALK, TURNR ETC
-		zCModelAni* Ani = oCNpc::GetHero()->GetModel()->GetModelAniActive()->GetCurrentAni(); // ZWYKLE
+		zCModelAni* AniUnusual = oCNpc::player->GetModel()->GetModelAniActive()->GetUnusualAnim(); // TALK, TURNR ETC
+		zCModelAni* Ani = oCNpc::player->GetModel()->GetModelAniActive()->GetCurrentAni(); // ZWYKLE
 		if(Ani){
-			if(Ani->GetAniName().Search(TURN) < 2) {
+			if(Ani->GetAniName().Search(TURN, 0) < 2) {
 				CActiveAniID::GetInstance()->AddAni(Ani->GetAniID());
 			}
 			if(AniUnusual && Ani->GetAniID() != AniUnusual->GetAniID()){
-				if(AniUnusual->GetAniName().Search(TURN) < 2) {
+				if(AniUnusual->GetAniName().Search(TURN, 0) < 2) {
 					CActiveAniID::GetInstance()->AddAni(AniUnusual->GetAniID());
 				}
 			}
@@ -164,15 +170,17 @@ void CIngame::Loop(){
 		// INVENTORY RENDER
 		if(global_ingame->Inventory) global_ingame->Inventory->RenderInventory();
 		// START SNOW IF CHRISTMAS
-		if(global_ingame->Christmas) oCGame::GetGame()->GetWorld()->StartSnow();
+                if (global_ingame->Christmas)
+                        Game->world->skyControlerOutdoor->SetWeatherType(zTWEATHER_SNOW);
 		// RUN SHRINKER
 		global_ingame->Shrinker->Loop();
 		// CHECK FOR SWAMP LIGHTS STATE 
 		if(global_ingame->RecognizedMap == MAP_COLONY) global_ingame->CheckSwampLights();
 		// ALL LOCKABLES OPEN
-		if(oCNpc::GetHero()->GetFocusVob()){
-			if(GetPointerType((DWORD)oCNpc::GetHero()->GetFocusVob()) == VOB_TYPE_VT_OCMOBCONTAINER || GetPointerType((DWORD)oCNpc::GetHero()->GetFocusVob()) == VOB_TYPE_VT_OCMOBDOOR){
-				oCMobLockable* Locked = static_cast<oCMobLockable*>(oCNpc::GetHero()->GetFocusVob());
+		if(oCNpc::player->GetFocusVob()){
+                        if (GetPointerType((DWORD)oCNpc::player->GetFocusVob(), VOB_TYPE_VT_OCMOBCONTAINER) ||
+                            GetPointerType((DWORD)oCNpc::player->GetFocusVob(), VOB_TYPE_VT_OCMOBDOOR)) {
+				oCMobLockable* Locked = static_cast<oCMobLockable*>(oCNpc::player->GetFocusVob());
 				Locked->SetLocked(0);
 			}
 		}
@@ -183,14 +191,14 @@ void CIngame::Loop(){
 			char tmp_char[32];
 			sprintf(tmp_char, "%s : %d", (*global_ingame->lang)[CLanguage::UNMUTE_TIME].ToChar(), secs_to_unmute);
 			MuteTMP = tmp_char;
-			zCView::GetScreen()->PrintCXY(MuteTMP);
+			Screen->PrintCXY(MuteTMP);
 			MuteTMP.Clear();
 			if(secs_to_unmute < 0){
 				MuteCountdown = false;
 			}
 		}
 		// DEATH BUG WHEN AIMING FIX
-		oCNpc* Npc = oCNpc::GetHero();
+		oCNpc* Npc = oCNpc::player;
 		if(Npc->IsDead() && !Npc->GetAnictrl()->IsInWater()){
 			if(Npc->GetWeaponMode()== NPC_WEAPON_BOW || Npc->GetWeaponMode() == NPC_WEAPON_MAG || Npc->GetWeaponMode() == NPC_WEAPON_CBOW){
 				if(!Npc->GetModel()->IsAnimationActive(DEADB) && !Npc->GetModel()->IsAnimationActive(TDEADB) && !Npc->GetModel()->IsAnimationActive(DEAD2)){
@@ -213,19 +221,19 @@ void CIngame::Loop(){
 			}
 		}
 		// MAKING SURE THAT TEST MODE IS OFF FOREVER !
-		if(*(int*)((DWORD)oCGame::GetGame()+0x0B0) != 0) *(int*)((DWORD)oCGame::GetGame()+0x0B0) = 0;
+		if(*(int*)((DWORD)Game+0x0B0) != 0) *(int*)((DWORD)Game+0x0B0) = 0;
 		global_ingame->HandleInput();
 		global_ingame->Draw();
 	}
 }
 void CIngame::ClearAfterWrite(){
-	oCNpc* Hero = oCNpc::GetHero();
+	oCNpc* Hero = oCNpc::player;
 	if(Hero->IsMovLock()) Hero->SetMovLock(0);
 	Patch::PlayerInterfaceEnabled(true);
 	if(WritingOnChat) WritingOnChat = false;
 }
 void CIngame::PrepareForWrite(){
-	oCNpc* Hero = oCNpc::GetHero();
+	oCNpc* Hero = oCNpc::player;
 	Hero->GetAnictrl()->StopTurnAnis();
 	Patch::PlayerInterfaceEnabled(false);
 }
@@ -233,15 +241,14 @@ bool CIngame::PlayerExists(const char* PlayerName){
 	if(client->player.size() > 1){
 		for (int i = 1; i < (int)client->player.size(); i++){
 			if(client->player[i]->npc){
-				if(!memcmp(client->player[i]->npc->GetName().ToChar(), PlayerName, strlen(PlayerName))) return true;
+				if(!memcmp(client->player[i]->npc->name[0].ToChar(), PlayerName, strlen(PlayerName))) return true;
 			}
 		}
 	}
 	return false;
 }
 
-zCMaterial* CIngame::GetBarriereMaterial()
-{
+/*zCMaterial* CIngame::GetBarriereMaterial() {
 	zCMaterial* Material = NULL;
 	zCMesh* BarrierMesh = oCSkyControler_Barrier::GetCurrent()->GetBarrier()->GetBarrierMesh();
 	__asm
@@ -255,13 +262,13 @@ zCMaterial* CIngame::GetBarriereMaterial()
 		mov Material, eax
 	}
 	return Material;
-}
+}*/
 /*oCNpc* pc;
 zSTRING NODE = "ZS_TORSO";
 extern oCItem* BindArrow;*/
 oCNpc* Test;
 void CIngame::HandleInput(){
-	zCInput* input = zCInput::GetInput();
+	zCInput* input;
 	if((input->KeyPressed(KEY_LCONTROL) || input->KeyPressed(KEY_RCONTROL)) && (input->KeyPressed(KEY_LALT) || input->KeyPressed(KEY_RALT)) && input->KeyPressed(KEY_F8)){
 		if(client->network->IsConnected()){
 			client->Disconnect();
@@ -269,7 +276,7 @@ void CIngame::HandleInput(){
 		}
 	}
 	/*if(input->KeyToggled(KEY_F4)){
-		pc = oCGame::GetGame()->GetSpawnManager()->SummonNpc(zCParser::GetParser()->GetIndex("PC_Hero"), oCNpc::GetHero()->GetPosition(), 0);
+		pc = oCGame::GetGame()->GetSpawnManager()->SummonNpc(zCParser::GetParser()->GetIndex("PC_Hero"), oCNpc::player->GetPosition(), 0);
 		pc->SetHealth(10000);
 		pc->SetMaxHealth(10000);
 	}
@@ -292,15 +299,15 @@ void CIngame::HandleInput(){
 		Patch::LaunchBarriere();
 	}*/
 	/*if(input->KeyToggled(KEY_F4)){
-		printf("\nItemName : %s", oCNpc::GetHero()->GetSpellItem(19)->GetInstanceName().ToChar());
+		printf("\nItemName : %s", oCNpc::player->GetSpellItem(19)->GetInstanceName().ToChar());
 		//oCSpell* Spell = oCSpell::_CreateNewInstance();
 		//Spell->InitValues(13);
-		//Spell->Setup(oCNpc::GetHero(), Test, 0);
+		//Spell->Setup(oCNpc::player, Test, 0);
 		//Spell->Cast();
 	}
 	if(input->KeyToggled(KEY_F5)){
 		if(!Test){
-		Test = oCGame::GetGame()->GetSpawnManager()->SummonNpc(zCParser::GetParser()->GetIndex("PC_Hero"), oCNpc::GetHero()->GetPosition(), 0);
+		Test = oCGame::GetGame()->GetSpawnManager()->SummonNpc(zCParser::GetParser()->GetIndex("PC_Hero"), oCNpc::player->GetPosition(), 0);
 		Test->SetMaxHealth(70000);
 		Test->SetHealth(70000);
 		Test->SetTalentSkill(7, 6);
@@ -338,7 +345,7 @@ void CIngame::HandleInput(){
 		}
 	}
 	// ANIM MENU
-	if(input->KeyToggled(KEY_F3) && !oCNpc::GetHero()->IsDead()){
+	if(input->KeyToggled(KEY_F3) && !oCNpc::player->IsDead()){
 			if(!AMenu->Opened)AMenu->Open();
 			else AMenu->Close();
 		}
@@ -354,7 +361,7 @@ void CIngame::HandleInput(){
 	}
 	if(WritingOnChat){
 		// CHAT ANIM
-		if(!oCNpc::GetHero()->IsMovLock()) oCNpc::GetHero()->SetMovLock(1);
+		if(!oCNpc::player->IsMovLock()) oCNpc::player->SetMovLock(1);
 		if(chat_interface->PrintMsgType == NORMAL){int RandomAnim = rand() % 10 + 1;
 			chat_interface->StartChatAnimation(RandomAnim);}
 		// INPUT
@@ -366,9 +373,9 @@ void CIngame::HandleInput(){
 			}
 		}
 		char key=GInput::GetCharacterFormKeyboard();
-		zCView::GetScreen()->SetFontColor(Normal);
-		if (chat_interface->PrintMsgType != WHISPER) zCView::GetScreen()->Print(0,200 * CConfig::GetInstance()->ChatLines, arrow);
-		else zCView::GetScreen()->Print(0,200 * (CConfig::GetInstance()->ChatLines + 1), arrow);
+		Screen->SetFontColor(Normal);
+		if (chat_interface->PrintMsgType != WHISPER) Screen->Print(0,200 * CConfig::GetInstance()->ChatLines, arrow);
+		else Screen->Print(0,200 * (CConfig::GetInstance()->ChatLines + 1), arrow);
 		if(key==0x0D){
 			if(chatbuffer.length()!=0){
 				switch (chat_interface->PrintMsgType){
@@ -396,7 +403,7 @@ void CIngame::HandleInput(){
 					break;
 					case WHISPER:
 						if(chatbuffer[0]=='/'){
-							if(!memcmp(oCNpc::GetHero()->GetName().ToChar(), chatbuffer.c_str()+1, strlen(chatbuffer.c_str()+1))) chat_interface->WriteMessage(WHISPER, false, zCOLOR(255,0,0), (*lang)[CLanguage::CHAT_CANTWHISPERTOYOURSELF].ToChar());
+							if(!memcmp(oCNpc::player->name[0].ToChar(), chatbuffer.c_str()+1, strlen(chatbuffer.c_str()+1))) chat_interface->WriteMessage(WHISPER, false, zCOLOR(255,0,0), (*lang)[CLanguage::CHAT_CANTWHISPERTOYOURSELF].ToChar());
 							else {
 								if(PlayerExists(chatbuffer.c_str()+1)){ WhisperingTo = chatbuffer.c_str()+1;
 									chat_interface->SetWhisperTo(WhisperingTo);}
@@ -428,8 +435,8 @@ void CIngame::HandleInput(){
 			ChatTmp = buffer;
 		}
 		else ChatTmp = chatbuffer.c_str();
-		if (chat_interface->PrintMsgType != WHISPER) zCView::GetScreen()->Print(200,200 * CConfig::GetInstance()->ChatLines, ChatTmp);
-		else zCView::GetScreen()->Print(200,200 * (CConfig::GetInstance()->ChatLines + 1), ChatTmp);
+		if (chat_interface->PrintMsgType != WHISPER) Screen->Print(200,200 * CConfig::GetInstance()->ChatLines, ChatTmp);
+		else Screen->Print(200,200 * (CConfig::GetInstance()->ChatLines + 1), ChatTmp);
 	}
 }
 
@@ -453,22 +460,22 @@ void CIngame::CheckForUpdate(){
 
 void CIngame::CheckForHPDiff(){
 	for(size_t i=0; i<client->player.size(); i++){
-		if(client->player[i]->hp!=static_cast<short>(client->player[i]->npc->GetHealth())){
+		if(client->player[i]->hp!=static_cast<short>(client->player[i]->npc->attribute[NPC_ATR_HITPOINTS])){
 			if (!ValidatePlayerForHPDiff(client->player[i])) {
-				if (client->player[i]->npc->GetHealth() <= 0) {
+				if (client->player[i]->npc->attribute[NPC_ATR_HITPOINTS] <= 0) {
 					client->player[i]->RespawnPlayer();
 				}
-				client->player[i]->npc->SetHealth(static_cast<int>(client->player[i]->hp));
+				client->player[i]->npc->attribute[NPC_ATR_HITPOINTS] = (static_cast<int>(client->player[i]->hp));
 			}
-			client->SendHPDiff(i, static_cast<short>(static_cast<short>(client->player[i]->npc->GetHealth())-client->player[i]->hp));
-			client->player[i]->hp=static_cast<short>(client->player[i]->npc->GetHealth());
+			client->SendHPDiff(i, static_cast<short>(static_cast<short>(client->player[i]->npc->attribute[NPC_ATR_HITPOINTS])-client->player[i]->hp));
+			client->player[i]->hp=static_cast<short>(client->player[i]->npc->attribute[NPC_ATR_HITPOINTS]);
 		}
 	}
 }
 
 bool CIngame::ValidatePlayerForHPDiff(CPlayer* player)
 {
-	oCNpc* hero = oCNpc::GetHero();
+	oCNpc* hero = oCNpc::player;
 	if (hero == player->npc) {
 		return true;
 	}

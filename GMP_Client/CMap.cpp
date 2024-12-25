@@ -28,6 +28,9 @@ SOFTWARE.
 #include "CConfig.h"
 
 extern GameClient* client;
+using namespace Gothic_II_Addon;
+
+oCGame* Game;
 
 CMap::CMap()
 {
@@ -46,13 +49,13 @@ CMap::~CMap()
 void CMap::Open()
 {
 	if(CConfig::GetInstance()->watch) CConfig::GetInstance()->watch = false;
-	zCView::GetScreen()->InsertItem(PlayerMap);
+	screen->InsertItem(PlayerMap);
 	Opened = true;
 };
 void CMap::Close()
 {
 	if(watchwastrue) CConfig::GetInstance()->watch = true;
-	zCView::GetScreen()->RemoveItem(PlayerMap);
+	screen->RemoveItem(PlayerMap);
 	Opened = false;
 };
 
@@ -60,27 +63,27 @@ bool CMap::CheckMap()
 {
 	if(CConfig::GetInstance()->watch) watchwastrue = true; 
 	else watchwastrue = false;
-	if(!memcmp("NEWWORLD\\NEWWORLD.ZEN", oCGame::GetGame()->GetWorld()->GetWorldName().ToChar(), 21)){
+	if(!memcmp("NEWWORLD\\NEWWORLD.ZEN", Game->GetGameWorld()->GetWorldName().ToChar(), 21)){
 		PlayerMap->InsertBack(zSTRING("MAP_NEWWORLD.TGA"));
 		Map = MNEWWORLD;
 		return true;
 	}
-	else if(!memcmp("OLDWORLD\\OLDWORLD.ZEN", oCGame::GetGame()->GetWorld()->GetWorldName().ToChar(), 21)){
+	else if(!memcmp("OLDWORLD\\OLDWORLD.ZEN", Game->GetGameWorld()->GetWorldName().ToChar(), 21)){
 		PlayerMap->InsertBack(zSTRING("MAP_OLDWORLD.TGA"));
 		Map = MOLDWORLD;
 		return true;
 	}
-	else if(strstr(oCGame::GetGame()->GetWorld()->GetWorldName().ToChar(), "ADDONWORLD")){
+	else if(strstr(Game->GetGameWorld()->GetWorldName().ToChar(), "ADDONWORLD")){
 		PlayerMap->InsertBack(zSTRING("MAP_ADDONWORLD.TGA"));
 		Map = MJARKENDAR;
 		return true;
 	}
-	else if(!memcmp("OLDVALLEY.ZEN", oCGame::GetGame()->GetWorld()->GetWorldName().ToChar(), 13)){
+	else if(!memcmp("OLDVALLEY.ZEN", Game->GetGameWorld()->GetWorldName().ToChar(), 13)){
 		PlayerMap->InsertBack(zSTRING("MAP_WORLD_ORC.TGA"));
 		Map = MOLDVALLEY;
 		return true;
 	}
-	else if(strstr(oCGame::GetGame()->GetWorld()->GetWorldName().ToChar(), "COLONY")){
+	else if(strstr(Game->GetGameWorld()->GetWorldName().ToChar(), "COLONY")){
 		PlayerMap->InsertBack(zSTRING("MAP_WORLD_ORC.TGA"));
 		Map = MCOLONY;
 		return true;

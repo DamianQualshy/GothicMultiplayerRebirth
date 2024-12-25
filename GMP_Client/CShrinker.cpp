@@ -35,6 +35,10 @@ SOFTWARE.
 
 #include "CShrinker.h"
 
+using namespace Gothic_II_Addon;
+
+oCGame* Game;
+
 // Stage Sizes 
 zVEC3 OrginalSize = zVEC3(1.0f, 1.0f, 1.0f);
 zVEC3 Size90 = zVEC3(0.90f, 0.90f, 0.90f);
@@ -157,7 +161,7 @@ void CShrinker::Loop(void)
 						zCParticleFX* ParticleVisual =  zCParticleFX::Load(OutEffect);
 						Out->SetVisual(ParticleVisual);
 						Out->SetPositionWorld(ShrinkedNpcs[i].Npc->GetPositionWorld());
-						oCGame::GetGame()->GetWorld()->AddVob(Out);
+						Game->GetWorld()->AddVob(Out);
 						ShrinkedNpcs[i].Stage = FULLSIZE;
 						ShrinkedNpcs.erase(ShrinkedNpcs.begin()+i);
 					}

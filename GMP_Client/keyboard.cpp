@@ -26,6 +26,8 @@ SOFTWARE.
 #include "keyboard.h"
 #include "CConfig.h"
 
+using namespace Gothic_II_Addon;
+
 enum KeyboardLayout
 {
 	KEYBOARD_LATIN,
@@ -33,7 +35,7 @@ enum KeyboardLayout
 };
 
 char GInput::GetCharacterFormKeyboard(bool ignorekeyboardlayout){
-	zCInput *keyboard=zCInput::GetInput();
+	zCInput *keyboard=zinput;
 	bool with_shift=false;
 	if((keyboard->KeyPressed(KEY_RSHIFT)) || (keyboard->KeyPressed(KEY_LSHIFT))) with_shift=true;
 	if(keyboard->KeyPressed(KEY_RETURN)){
@@ -213,7 +215,7 @@ IGNORETHISCRAP:
 
 char GInput::GetNumberCharacterFromKeyboard()
 {
-	zCInput *keyboard=zCInput::GetInput();
+	zCInput *keyboard=zinput;
 	zINT i_keyboard=KEY_1;
 	do{
 			if(keyboard->KeyToggled(i_keyboard)){

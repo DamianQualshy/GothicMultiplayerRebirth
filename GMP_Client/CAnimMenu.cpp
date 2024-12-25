@@ -32,6 +32,8 @@ SOFTWARE.
 #include "patch.h"
 #include "CLanguage.h"
 
+using namespace Gothic_II_Addon;
+
 using namespace std;
 extern zCOLOR Highlighted;
 extern zCOLOR Normal;
@@ -95,16 +97,16 @@ CAnimMenu::~CAnimMenu()
 void CAnimMenu::Open()
 {
 	if(!AnimVector[MenuPos].AniEnd.IsEmpty()){
-		if(oCNpc::GetHero()->GetModel()->IsAnimationActive(AnimVector[MenuPos].AniLoop)){
-			oCNpc::GetHero()->GetModel()->StartAnimation(AnimVector[MenuPos].AniEnd);
+		if(oCNpc::player->GetModel()->IsAnimationActive(AnimVector[MenuPos].AniLoop)){
+			oCNpc::player->GetModel()->StartAnimation(AnimVector[MenuPos].AniEnd);
 			return;
 		}
 	}
-	else if(oCNpc::GetHero()->GetModel()->IsAnimationActive(AnimVector[MenuPos].AniLoop)){
-		oCNpc::GetHero()->GetModel()->StopAnimation(AnimVector[MenuPos].AniLoop);
+	else if(oCNpc::player->GetModel()->IsAnimationActive(AnimVector[MenuPos].AniLoop)){
+		oCNpc::player->GetModel()->StopAnimation(AnimVector[MenuPos].AniLoop);
 		return;
 	}
-	oCNpc::GetHero()->GetAnictrl()->StopTurnAnis();
+	oCNpc::player->GetAnictrl()->StopTurnAnis();
 	Patch::PlayerInterfaceEnabled(false);
 	Opened = true;
 };
@@ -112,24 +114,24 @@ void CAnimMenu::Open()
 void CAnimMenu::Close()
 {
 	Patch::PlayerInterfaceEnabled(true);
-	oCNpc::GetHero()->SetMovLock(0);
+	oCNpc::player->SetMovLock(0);
 	Opened = false;
 };
 void CAnimMenu::RunMenuItem()
 {
 	Patch::PlayerInterfaceEnabled(true);
 	if(!AnimVector[MenuPos].AniStart.IsEmpty()){
-		oCNpc::GetHero()->GetModel()->StartAnimation(AnimVector[MenuPos].AniStart);
+		oCNpc::player->GetModel()->StartAnimation(AnimVector[MenuPos].AniStart);
 	}
-	else oCNpc::GetHero()->GetModel()->StartAnimation(AnimVector[MenuPos].AniLoop);
+	else oCNpc::player->GetModel()->StartAnimation(AnimVector[MenuPos].AniLoop);
 	Close();
 };
 void CAnimMenu::PrintMenu()
 {
-	if (oCNpc::GetHero()->IsDead() || oCNpc::GetHero()->GetBodyState() == 22) Close();
-	if(!oCNpc::GetHero()->IsMovLock()) oCNpc::GetHero()->SetMovLock(1);
+	if (oCNpc::player->IsDead() || oCNpc::player->GetBodyState() == 22) Close();
+	if(!oCNpc::player->IsMovLock()) oCNpc::player->SetMovLock(1);
 	// INPUT
-	zCInput* input = zCInput::GetInput();
+	zCInput* input;
 	if(input->KeyToggled(KEY_UP)){
 		if(MenuPos > 0) MenuPos--;
 		if(PrintFrom > 0){
@@ -146,7 +148,7 @@ void CAnimMenu::PrintMenu()
 		RunMenuItem();
 	}
 	// PRINT
-	zCView* Screen = zCView::GetScreen();
+	zCView* Screen;
 	Screen->SetFontColor(Normal);
 	Screen->Print(6500, 3200, (*Lang)[CLanguage::ANIMS_MENU]);
 	if((int)AnimVector.size() > 9) PrintTo = 10;

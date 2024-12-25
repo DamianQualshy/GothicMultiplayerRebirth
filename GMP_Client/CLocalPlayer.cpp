@@ -37,6 +37,8 @@ SOFTWARE.
 #include "game_client.h"
 #include "CIngame.h"
 
+using namespace Gothic_II_Addon;
+
 CLocalPlayer* LocalPlayer = NULL;
 
 // Externs
